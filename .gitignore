@@ -8,4 +8,4 @@ tst.py
 __pycache__/
 *.pyc
 .venv/
-.env.*
+.env.*online_retail_II_test_with_family.csv
