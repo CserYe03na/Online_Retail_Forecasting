@@ -1,0 +1,11 @@
+# secrets
+.env
+
+# local test file
+tst.py
+
+# python junk
+__pycache__/
+*.pyc
+.venv/
+.env.*
