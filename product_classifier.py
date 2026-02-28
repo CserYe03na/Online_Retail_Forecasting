@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-INPUT_XLSX = "online_retail_II_cleaned.xlsx"
+INPUT_XLSX = "data/online_retail_II_cleaned.xlsx"
 SHEETS = ["Year 2009-2010", "Year 2010-2011"]
 
 MODEL = "gpt-4o-mini"

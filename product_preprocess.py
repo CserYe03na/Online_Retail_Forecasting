@@ -2,10 +2,10 @@ import pandas as pd
 import os
 import re
 
-INPUT_XLSX = "online_retail_II.xlsx"
+INPUT_XLSX = "data/raw/online_retail_II.xlsx"
 SHEETS = ["Year 2009-2010", "Year 2010-2011"]
 
-OUT_XLSX = "online_retail_II_cleaned.xlsx"
+OUT_XLSX = "data/online_retail_II_cleaned.xlsx"
 OUT_DIR_PARQUET = "parquet_cleaned"
 os.makedirs(OUT_DIR_PARQUET, exist_ok=True)
 
