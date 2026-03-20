@@ -55,22 +55,38 @@ def _infer_method_cols(
     return {"baseline": baseline_col, "model": model_col}
 
 
-def _method_display_name(role: str, col_name: str) -> str:
+def _method_display_name(
+    role: str,
+    col_name: str,
+    method_names: Optional[Dict[str, str]] = None,
+) -> str:
+    if method_names is not None and role in method_names:
+        return method_names[role]
     if role == "baseline":
         if col_name == "pred_snaive7":
-            return "Baseline Forecast (Seasonal Naive 7)"
+            return "Seasonal Naive Baseline"
         if col_name == "pred_adida":
-            return "Baseline Forecast (ADIDA)"
+            return "ADIDA Baseline"
         if col_name == "pred_sba":
-            return "Baseline Forecast (SBA)"
+            return "SBA Baseline"
         if col_name == "pred_tsb":
-            return "Baseline Forecast (TSB)"
+            return "TSB Baseline"
+        if col_name == "pred_naive7":
+            return "Naive 7-Day Baseline"
         return "Baseline Forecast"
     if role == "model":
         if col_name == "pred_two_stage":
-            return "Model Forecast (Two-stage HGB)"
+            return "Two-Stage HGB Forecast"
+        if col_name == "pred_zinb":
+            return "Zero-Inflated Negative Binomial Forecast"
         return "Model Forecast"
     return col_name
+
+
+def _resolve_output_dir(output_root: str, cluster_tag: str, output_dir: Optional[str]) -> Path:
+    if output_dir is not None:
+        return Path(output_dir)
+    return Path(output_root) / f"{cluster_tag}_results"
 
 
 def _agg_daily(pred_df: pd.DataFrame, method_cols: Dict[str, str]) -> pd.DataFrame:
@@ -101,6 +117,9 @@ def plot_cluster_aggregate_lines(
     pred_df: pd.DataFrame,
     method_cols: Dict[str, str],
     cluster_label: str,
+    method_names: Optional[Dict[str, str]] = None,
+    actual_name: str = "Actual Sales",
+    target_label: str = "Daily cluster sales",
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> None:
@@ -127,11 +146,11 @@ def plot_cluster_aggregate_lines(
     model_up = agg[model_col] + z95 * model_sigma
 
     fig, ax = plt.subplots(figsize=(14, 5))
-    ax.plot(agg["date"], agg["y"], label="Actual", linewidth=2.2, color="#1f77b4")
+    ax.plot(agg["date"], agg["y"], label=actual_name, linewidth=2.2, color="#1f77b4")
     ax.plot(
         agg["date"],
         agg[baseline_col],
-        label=_method_display_name("baseline", baseline_col),
+        label=_method_display_name("baseline", baseline_col, method_names=method_names),
         linewidth=1.8,
         color="#ff7f0e",
     )
@@ -146,7 +165,7 @@ def plot_cluster_aggregate_lines(
     ax.plot(
         agg["date"],
         agg[model_col],
-        label=_method_display_name("model", model_col),
+        label=_method_display_name("model", model_col, method_names=method_names),
         linewidth=1.8,
         color="#2ca02c",
     )
@@ -158,9 +177,9 @@ def plot_cluster_aggregate_lines(
         alpha=0.16,
         label="Model 95% interval",
     )
-    ax.set_title(f"{cluster_label} Test Daily Aggregate: Actual vs Prediction with 95% Intervals")
+    ax.set_title(f"{cluster_label}: Actual vs Forecast with 95% Prediction Intervals")
     ax.set_xlabel("Date")
-    ax.set_ylabel("Cluster daily total_sales")
+    ax.set_ylabel(target_label)
     ax.legend()
     fig.tight_layout()
     _save_fig(fig, "01_cluster_aggregate_lines", save_svg=save_svg, out_dir=out_dir)
@@ -172,6 +191,7 @@ def plot_residual_time_series(
     method_cols: Dict[str, str],
     cluster_label: str,
     rolling_window: int = 7,
+    method_names: Optional[Dict[str, str]] = None,
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> pd.DataFrame:
@@ -194,7 +214,7 @@ def plot_residual_time_series(
         color="#ff7f0e",
         alpha=0.35,
         linewidth=1.2,
-        label=f"{_method_display_name('baseline', baseline_col)} residual",
+        label=f"{_method_display_name('baseline', baseline_col, method_names=method_names)} residual",
     )
     ax.plot(
         out["date"],
@@ -202,7 +222,7 @@ def plot_residual_time_series(
         color="#2ca02c",
         alpha=0.35,
         linewidth=1.2,
-        label=f"{_method_display_name('model', model_col)} residual",
+        label=f"{_method_display_name('model', model_col, method_names=method_names)} residual",
     )
     ax.plot(
         out["date"],
@@ -218,7 +238,7 @@ def plot_residual_time_series(
         linewidth=2.0,
         label=f"Model residual {rolling_window}d mean",
     )
-    ax.set_title(f"{cluster_label} Residual Time Series (Actual - Prediction)")
+    ax.set_title(f"{cluster_label}: Residual Trend (Actual Minus Forecast)")
     ax.set_xlabel("Date")
     ax.set_ylabel("Residual")
     ax.legend(ncol=2, fontsize=8)
@@ -235,6 +255,7 @@ def plot_rolling_error_trend(
     window: int = 7,
     rolling_metric: str = "wmape",
     eps: float = 1.0,
+    method_names: Optional[Dict[str, str]] = None,
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> None:
@@ -252,9 +273,14 @@ def plot_rolling_error_trend(
             ape = _ape_eps(agg["y"].values, agg[col].values, eps=eps)
             series = pd.Series(ape, index=agg.index).rolling(window, min_periods=window).mean()
             ylabel = f"Rolling {window}-day Epsilon-MAPE (%)"
-        ax.plot(agg["date"], series, label=_method_display_name(name, col), linewidth=2)
+        ax.plot(
+            agg["date"],
+            series,
+            label=_method_display_name(name, col, method_names=method_names),
+            linewidth=2,
+        )
 
-    ax.set_title(f"{cluster_label} Temporal Stability ({rolling_metric.upper()})")
+    ax.set_title(f"{cluster_label}: Rolling {window}-Day Forecast Error ({rolling_metric.upper()})")
     ax.set_xlabel("Date")
     ax.set_ylabel(ylabel)
     ax.legend(title="Method")
@@ -267,6 +293,7 @@ def plot_occurrence_confusion_by_period(
     pred_df: pd.DataFrame,
     method_cols: Dict[str, str],
     cluster_label: str,
+    method_names: Optional[Dict[str, str]] = None,
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> pd.DataFrame:
@@ -293,6 +320,10 @@ def plot_occurrence_confusion_by_period(
                 }
             )
     conf_df = pd.DataFrame(rows)
+    if method_names is not None and not conf_df.empty:
+        conf_df["method_display"] = conf_df["method"].map(method_names).fillna(conf_df["method"])
+    else:
+        conf_df["method_display"] = conf_df["method"]
     total = conf_df[["TP", "FP", "FN", "TN"]].sum(axis=1).replace(0, np.nan)
     conf_df["TP_pct"] = (conf_df["TP"] / total * 100.0).fillna(0.0)
     conf_df["FP_pct"] = (conf_df["FP"] / total * 100.0).fillna(0.0)
@@ -324,7 +355,9 @@ def plot_occurrence_confusion_by_period(
                         color="white",
                     )
             bottom = bottom + vals
-        ax.set_title(f"{cluster_label} {_method_display_name(method_name, method_cols[method_name])}")
+        ax.set_title(
+            f"{cluster_label}: {_method_display_name(method_name, method_cols[method_name], method_names=method_names)}"
+        )
         ax.set_xlabel("Test period")
         ax.set_ylabel("Share (%)")
         ax.set_ylim(0, 100)
@@ -341,6 +374,7 @@ def plot_interval_width_over_time(
     method_cols: Dict[str, str],
     cluster_label: str,
     rolling_window: int = 7,
+    method_names: Optional[Dict[str, str]] = None,
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> pd.DataFrame:
@@ -376,7 +410,7 @@ def plot_interval_width_over_time(
         color="#ff7f0e",
         alpha=0.35,
         linewidth=1.2,
-        label="Baseline 95% CI width",
+        label=f"{_method_display_name('baseline', baseline_col, method_names=method_names)} 95% interval width",
     )
     ax.plot(
         out["date"],
@@ -384,23 +418,23 @@ def plot_interval_width_over_time(
         color="#2ca02c",
         alpha=0.35,
         linewidth=1.2,
-        label="Model 95% CI width",
+        label=f"{_method_display_name('model', model_col, method_names=method_names)} 95% interval width",
     )
     ax.plot(
         out["date"],
         out["baseline_ci95_width_roll"],
         color="#ff7f0e",
         linewidth=2.0,
-        label=f"Baseline CI width {rolling_window}d mean",
+        label=f"{_method_display_name('baseline', baseline_col, method_names=method_names)} interval width {rolling_window}d mean",
     )
     ax.plot(
         out["date"],
         out["model_ci95_width_roll"],
         color="#2ca02c",
         linewidth=2.0,
-        label=f"Model CI width {rolling_window}d mean",
+        label=f"{_method_display_name('model', model_col, method_names=method_names)} interval width {rolling_window}d mean",
     )
-    ax.set_title(f"{cluster_label} 95% Prediction Interval Width Over Time")
+    ax.set_title(f"{cluster_label}: 95% Prediction Interval Width Over Time")
     ax.set_xlabel("Date")
     ax.set_ylabel("Interval width")
     ax.legend(ncol=2, fontsize=8)
@@ -414,6 +448,7 @@ def plot_positive_day_scatter(
     pred_df: pd.DataFrame,
     method_cols: Dict[str, str],
     cluster_label: str,
+    method_names: Optional[Dict[str, str]] = None,
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> None:
@@ -433,9 +468,11 @@ def plot_positive_day_scatter(
         lim = float(max(np.max(x), np.max(y)) * 1.05)
         ax.scatter(x, y, alpha=0.5, s=20, color="#1f77b4")
         ax.plot([0, lim], [0, lim], linestyle="--", color="#d62728", linewidth=1.8)
-        ax.set_title(f"{cluster_label} Positive-demand scatter: {method_name}")
-        ax.set_xlabel("Actual")
-        ax.set_ylabel("Predicted")
+        ax.set_title(
+            f"{cluster_label}: Positive-Demand Scatter for {_method_display_name(method_name, col, method_names=method_names)}"
+        )
+        ax.set_xlabel("Actual sales")
+        ax.set_ylabel("Predicted sales")
         ax.set_xlim(0, lim)
         ax.set_ylim(0, lim)
 
@@ -484,8 +521,8 @@ def plot_days_since_last_sale_shift(
         label="Test",
         ax=ax,
     )
-    ax.set_title(f"{cluster_label} How Time Since Last Sale Changed (Train vs Test, clipped at P99)")
-    ax.set_xlabel("days_since_last_sale")
+    ax.set_title(f"{cluster_label}: Time Since Last Sale in Train vs Test (Clipped at P99)")
+    ax.set_xlabel("Days since last sale")
     ax.set_ylabel("Density")
     ax.legend()
     fig.tight_layout()
@@ -538,13 +575,13 @@ def plot_occurrence_calibration(
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.8))
     axes[0].plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1.5, label="Ideal")
     axes[0].plot(cal["p_mean"], cal["sale_rate"], marker="o", linewidth=2, color="#1f77b4", label="Observed")
-    axes[0].set_title(f"{cluster_label} Occurrence Calibration")
+    axes[0].set_title(f"{cluster_label}: Sale-Probability Calibration")
     axes[0].set_xlabel("Predicted probability (bin mean)")
     axes[0].set_ylabel("Empirical sale rate")
     axes[0].legend()
 
     axes[1].bar(range(len(cal)), cal["count"], color="#ff7f0e", alpha=0.8)
-    axes[1].set_title(f"{cluster_label} Calibration Bin Counts")
+    axes[1].set_title(f"{cluster_label}: Calibration Bin Counts")
     axes[1].set_xlabel("Probability bin index")
     axes[1].set_ylabel("Count")
     axes[1].set_xticks(range(len(cal)))
@@ -561,6 +598,7 @@ def plot_error_decomposition_by_state(
     method_cols: Dict[str, str],
     cluster_label: str,
     eps: float = 1.0,
+    method_names: Optional[Dict[str, str]] = None,
     save_svg: bool = False,
     out_dir: Path = Path("images/c1_results"),
 ) -> pd.DataFrame:
@@ -587,15 +625,19 @@ def plot_error_decomposition_by_state(
                 }
             )
     out = pd.DataFrame(rows)
+    if method_names is not None and not out.empty:
+        out["method_display"] = out["method"].map(method_names).fillna(out["method"])
+    else:
+        out["method_display"] = out["method"]
 
     fig, axes = plt.subplots(1, 2, figsize=(9, 3.6))
-    sns.barplot(data=out, x="state", y="epsilon_mape_pct", hue="method", ax=axes[0])
-    axes[0].set_title(f"{cluster_label} Error by demand state (Epsilon-MAPE)")
+    sns.barplot(data=out, x="state", y="epsilon_mape_pct", hue="method_display", ax=axes[0])
+    axes[0].set_title(f"{cluster_label}: Error by Demand State (Epsilon-MAPE)")
     axes[0].set_xlabel("Demand state")
     axes[0].set_ylabel("Epsilon-MAPE (%)")
 
-    sns.barplot(data=out, x="state", y="mae", hue="method", ax=axes[1])
-    axes[1].set_title(f"{cluster_label} Error by demand state (MAE)")
+    sns.barplot(data=out, x="state", y="mae", hue="method_display", ax=axes[1])
+    axes[1].set_title(f"{cluster_label}: Error by Demand State (MAE)")
     axes[1].set_xlabel("Demand state")
     axes[1].set_ylabel("MAE")
 
@@ -613,6 +655,7 @@ def build_cluster_metric_tables(
     pred_df: pd.DataFrame,
     method_cols: Dict[str, str],
     eps: float = 1.0,
+    method_names: Optional[Dict[str, str]] = None,
 ) -> pd.DataFrame:
     rows = []
     y = pred_df["y"].values.astype(float)
@@ -625,6 +668,7 @@ def build_cluster_metric_tables(
         rows.append(
             {
                 "method": method_name,
+                "method_display": method_names.get(method_name, method_name) if method_names is not None else method_name,
                 "wmape_pct": _wmape(y, pred, eps=eps),
                 "epsilon_mape_pct": float(np.mean(ape_eps)),
                 "cap_mape_0_100": float(np.mean(np.clip(ape_eps, 0.0, 100.0))),
@@ -645,12 +689,18 @@ def run_cluster_analysis(
     cluster_tag: str = "c1",
     baseline_col: Optional[str] = None,
     model_col: str = "pred_two_stage",
+    cluster_label: Optional[str] = None,
+    baseline_name: Optional[str] = None,
+    model_name: Optional[str] = None,
+    actual_name: str = "Actual Sales",
+    target_label: str = "Daily cluster sales",
     rolling_metric: str = "wmape",
     rolling_window: int = 7,
     eps: float = 1.0,
     n_periods: int = 4,
     save_svg: bool = False,
     output_root: str = "images",
+    output_dir: Optional[str] = None,
 ) -> Dict[str, pd.DataFrame]:
     """
     Run a full post-forecast analysis suite for C1/C3 artifacts.
@@ -665,6 +715,16 @@ def run_cluster_analysis(
         Baseline prediction column. If None, infer from pred_df.
     model_col : str
         Main model prediction column.
+    cluster_label : str | None
+        Human-readable label used in chart titles, e.g. "Cluster 1".
+    baseline_name : str | None
+        Human-readable name for the baseline forecast.
+    model_name : str | None
+        Human-readable name for the main model forecast.
+    actual_name : str
+        Human-readable name for actual values shown in charts.
+    target_label : str
+        Human-readable y-axis label for sales totals.
     rolling_metric : str
         "wmape" or "mape" for rolling error plot.
     rolling_window : int
@@ -677,19 +737,28 @@ def run_cluster_analysis(
         If True, save figures as svg files.
     output_root : str
         Root output folder. Files are saved in images/{cluster_tag}_results.
+    output_dir : str | None
+        Explicit output directory. If provided, overrides output_root/cluster_tag.
     """
     pred_df = art.pred_df.copy()
     pred_df["date"] = pd.to_datetime(pred_df["date"], errors="coerce")
     pred_df = _ensure_period_column(pred_df, n_periods=n_periods)
 
     method_cols = _infer_method_cols(pred_df, baseline_col=baseline_col, model_col=model_col)
-    out_dir = Path(output_root) / f"{cluster_tag}_results"
-    cluster_label = cluster_tag.upper()
+    out_dir = _resolve_output_dir(output_root=output_root, cluster_tag=cluster_tag, output_dir=output_dir)
+    cluster_label = cluster_label or cluster_tag.upper()
+    method_names = {
+        "baseline": baseline_name or _method_display_name("baseline", method_cols["baseline"]),
+        "model": model_name or _method_display_name("model", method_cols["model"]),
+    }
 
     plot_cluster_aggregate_lines(
         pred_df=pred_df,
         method_cols=method_cols,
         cluster_label=cluster_label,
+        method_names=method_names,
+        actual_name=actual_name,
+        target_label=target_label,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -700,6 +769,7 @@ def run_cluster_analysis(
         window=rolling_window,
         rolling_metric=rolling_metric,
         eps=eps,
+        method_names=method_names,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -707,6 +777,7 @@ def run_cluster_analysis(
         pred_df=pred_df,
         method_cols=method_cols,
         cluster_label=cluster_label,
+        method_names=method_names,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -714,6 +785,7 @@ def run_cluster_analysis(
         pred_df=pred_df,
         method_cols=method_cols,
         cluster_label=cluster_label,
+        method_names=method_names,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -729,6 +801,7 @@ def run_cluster_analysis(
         method_cols=method_cols,
         cluster_label=cluster_label,
         rolling_window=rolling_window,
+        method_names=method_names,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -737,6 +810,7 @@ def run_cluster_analysis(
         method_cols=method_cols,
         cluster_label=cluster_label,
         rolling_window=rolling_window,
+        method_names=method_names,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -745,6 +819,7 @@ def run_cluster_analysis(
         method_cols=method_cols,
         cluster_label=cluster_label,
         eps=eps,
+        method_names=method_names,
         save_svg=save_svg,
         out_dir=out_dir,
     )
@@ -752,6 +827,7 @@ def run_cluster_analysis(
         pred_df=pred_df,
         method_cols=method_cols,
         eps=eps,
+        method_names=method_names,
     )
 
     return {
@@ -762,4 +838,5 @@ def run_cluster_analysis(
         "interval_width_time_series": interval_width_ts,
         "distribution_shift_stats": pd.DataFrame([shift_stats]) if shift_stats else pd.DataFrame(),
         "method_cols": pd.DataFrame([method_cols]),
+        "method_names": pd.DataFrame([method_names]),
     }
