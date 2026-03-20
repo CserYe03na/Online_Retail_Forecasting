@@ -1,39 +1,63 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+"""C1 forecasting pipeline with naive7 baseline vs leak-safe ZINB.
+
+This script follows the reporting structure of ``c1_forecasting.py`` while
+keeping only the C1 comparison requested by the project:
+
+- baseline: ``pred_naive7``
+- model: ``pred_zinb``
+
+The train/test split is taken strictly from the provided parquet files. Final
+reporting still uses only that split. To tune a small number of ZINB
+parameters, the script uses a short time-ordered holdout cut from the tail of
+the training panel only. ZINB test-period features are built recursively from
+historical train data plus prior predictions only, so test targets are never
+used during forecasting.
+"""
+
+from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+import argparse
+import json
+import warnings
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
+from statsmodels.discrete.count_model import ZeroInflatedNegativeBinomialP
+from statsmodels.tools.sm_exceptions import HessianInversionWarning
+
+from c1_forecasting import compute_metric_bundle, pointwise_safe_ape
+from c1_forecasting_new import (
+    COUNT_FEATURE_COLS,
+    INFLATION_FEATURE_COLS,
+    _build_train_features,
+    _history_feature_row,
+    _load_daily,
+    _predict_count_model,
+    _prepare_design_matrices,
+    _save_table,
+    _build_zero_filled_panel,
+)
 
 
-DEFAULT_FEATURE_COLS = [
-    "dow",
-    "dom",
-    "weekofyear",
-    "month",
-    "quarter",
-    "is_weekend",
-    "is_q4",
-    "lag_1",
-    "lag_7",
-    "lag_14",
-    "lag_28",
-    "roll_mean_7",
-    "roll_std_7",
-    "roll_mean_14",
-    "roll_std_14",
-    "roll_mean_28",
-    "roll_std_28",
-    "days_since_last_sale",
-]
+TRAIN_DEFAULT = "data/forecasting/train_daily.parquet"
+TEST_DEFAULT = "data/forecasting/test_daily.parquet"
+PREDICTION_OUTPUT_DEFAULT = "forecasting/c1_prediction.parquet"
+SEARCH_HOLDOUT_DAYS_DEFAULT = 42
+DEFAULT_ZINB_THRESHOLD = 0.50
+DEFAULT_ZINB_CLIP_Q = 0.98
+DEFAULT_ZINB_CLIP_MAX_CAP = 200
+DEFAULT_TUNING_OBJECTIVE = "wmape"
 
 
 @dataclass
-class C1Artifacts:
+class C1Forecasting2Artifacts:
+    cluster_id: int
+    train_raw: pd.DataFrame
+    test_raw: pd.DataFrame
     train_panel: pd.DataFrame
     test_panel: pd.DataFrame
     train_feat: pd.DataFrame
@@ -47,535 +71,354 @@ class C1Artifacts:
     error_quantiles: Optional[pd.DataFrame] = None
     tuning_trials: Optional[pd.DataFrame] = None
     tuning_best_config: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     prediction_output_path: Optional[str] = None
+    metrics_output_path: Optional[str] = None
 
 
-def _validate_eps(eps: float) -> float:
-    eps = float(eps)
-    if eps <= 0:
-        raise ValueError("eps must be > 0")
-    return eps
+def _forecast_naive7(series: np.ndarray, horizon: int) -> np.ndarray:
+    series = np.asarray(series, dtype=float)
+    if horizon <= 0:
+        return np.zeros(0, dtype=float)
+    if series.size == 0:
+        return np.zeros(horizon, dtype=float)
+    pattern_len = min(7, series.size)
+    pattern = series[-pattern_len:]
+    repeats = int(np.ceil(horizon / pattern_len))
+    return np.tile(pattern, repeats)[:horizon].astype(float)
 
 
-def _prepare_metric_arrays(y_true: np.ndarray, y_pred: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    yt = np.asarray(y_true, dtype=float).reshape(-1)
-    yp = np.asarray(y_pred, dtype=float).reshape(-1)
-    if yt.shape[0] != yp.shape[0]:
-        raise ValueError("y_true and y_pred must have the same length")
-    valid = np.isfinite(yt) & np.isfinite(yp)
-    return yt, yp, valid
+def _build_naive7_predictions(train_panel: pd.DataFrame, test_panel: pd.DataFrame) -> pd.DataFrame:
+    rows: List[pd.DataFrame] = []
+    for sku, tr_sku in train_panel.groupby("product_family_name"):
+        te_sku = test_panel[test_panel["product_family_name"] == sku].sort_values("date")
+        horizon = len(te_sku)
+        train_series = tr_sku.sort_values("date")["total_sales"].to_numpy(dtype=float)
+
+        part = te_sku[["date", "product_family_name", "cluster", "total_sales"]].copy()
+        part["y"] = part["total_sales"].astype(float)
+        part["is_sale"] = (part["y"] > 0).astype(int)
+        part["pred_naive7"] = _forecast_naive7(train_series, horizon)
+        rows.append(part.drop(columns=["total_sales"]))
+
+    return (
+        pd.concat(rows, ignore_index=True)
+        .sort_values(["product_family_name", "date"])
+        .reset_index(drop=True)
+    )
 
 
-def pointwise_safe_ape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1.0) -> np.ndarray:
-    eps = _validate_eps(eps)
-    yt = np.asarray(y_true, dtype=float)
-    yp = np.asarray(y_pred, dtype=float)
-    denom = np.maximum(np.abs(yt), eps)
-    return np.abs(yt - yp) / denom * 100.0
+def _clip_count_target(
+    y: np.ndarray,
+    q: float = DEFAULT_ZINB_CLIP_Q,
+    max_cap: int = DEFAULT_ZINB_CLIP_MAX_CAP,
+) -> np.ndarray:
+    y = np.asarray(y, dtype=float)
+    y = np.clip(y, 0.0, None)
+    y_int = np.rint(y).astype(int)
+    if y_int.size == 0:
+        return y_int
+    cap = int(np.quantile(y_int, q)) if np.any(y_int > 0) else 0
+    if max_cap > 0:
+        cap = min(cap, int(max_cap)) if cap > 0 else int(max_cap)
+    if cap > 0:
+        y_int = np.minimum(y_int, cap)
+    return y_int
 
 
-def safe_mape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1.0) -> float:
-    eps = _validate_eps(eps)
-    yt, yp, valid = _prepare_metric_arrays(y_true, y_pred)
-    if int(np.sum(valid)) == 0:
-        return float("nan")
-    ape = pointwise_safe_ape(yt[valid], yp[valid], eps=eps)
-    return float(np.mean(ape))
+def _fit_zinb_with_config(
+    train_feat: pd.DataFrame,
+    clip_q: float,
+    clip_max_cap: int,
+    maxiter: int = 200,
+    feature_cols: Sequence[str] = COUNT_FEATURE_COLS,
+    inflation_feature_cols: Sequence[str] = INFLATION_FEATURE_COLS,
+) -> Dict[str, Any]:
+    y = _clip_count_target(train_feat["y"].to_numpy(dtype=float), q=clip_q, max_cap=clip_max_cap)
+    x, x_infl, design_info = _prepare_design_matrices(train_feat, feature_cols, inflation_feature_cols)
+    model = ZeroInflatedNegativeBinomialP(endog=y, exog=x, exog_infl=x_infl, inflation="logit")
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            warnings.simplefilter("ignore", HessianInversionWarning)
+            result = model.fit(method="bfgs", maxiter=maxiter, disp=0)
+        params = np.asarray(result.params, dtype=float)
+        if not np.all(np.isfinite(params)):
+            raise ValueError("non-finite fitted parameters")
+        return {
+            "distribution": "zinb",
+            "result": result,
+            "feature_cols": list(feature_cols),
+            "inflation_feature_cols": list(inflation_feature_cols),
+            "status": "ok",
+            "clip_q": float(clip_q),
+            "clip_max_cap": int(clip_max_cap),
+            "maxiter": int(maxiter),
+            **design_info,
+        }
+    except Exception as exc:  # pragma: no cover - defensive runtime fallback
+        warnings.warn(f"ZINB fit failed; using fallback. Error: {exc}")
+        return {
+            "distribution": "zinb",
+            "result": None,
+            "feature_cols": list(feature_cols),
+            "inflation_feature_cols": list(inflation_feature_cols),
+            "status": f"failed: {exc}",
+            "clip_q": float(clip_q),
+            "clip_max_cap": int(clip_max_cap),
+            "maxiter": int(maxiter),
+            **design_info,
+        }
 
 
-def bounded_mape(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    eps: float = 1.0,
-    ape_cap: float = 100.0,
-) -> float:
-    eps = _validate_eps(eps)
-    ape_cap = float(ape_cap)
-    if ape_cap <= 0:
-        raise ValueError("ape_cap must be > 0")
-    yt, yp, valid = _prepare_metric_arrays(y_true, y_pred)
-    if int(np.sum(valid)) == 0:
-        return float("nan")
-    ape = pointwise_safe_ape(yt[valid], yp[valid], eps=eps)
-    return float(np.mean(np.clip(ape, 0.0, ape_cap)))
-
-
-def wmape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1.0) -> float:
-    eps = _validate_eps(eps)
-    yt, yp, valid = _prepare_metric_arrays(y_true, y_pred)
-    if int(np.sum(valid)) == 0:
-        return float("nan")
-    yt = yt[valid]
-    yp = yp[valid]
-    numerator = np.sum(np.abs(yt - yp))
-    denominator = max(float(np.sum(np.abs(yt))), eps)
-    return float(numerator / denominator * 100.0)
-
-
-def positive_only_mape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1e-12) -> float:
-    yt, yp, valid = _prepare_metric_arrays(y_true, y_pred)
-    yt = yt[valid]
-    yp = yp[valid]
-    mask = yt > 0
-    if mask.sum() == 0:
-        return float("nan")
-    denom = np.maximum(yt[mask], eps)
-    return float(np.mean(np.abs(yt[mask] - yp[mask]) / denom) * 100.0)
-
-
-def occurrence_f1(y_true_sale: np.ndarray, y_pred_sale: np.ndarray) -> float:
-    y_true_sale = y_true_sale.astype(int)
-    y_pred_sale = y_pred_sale.astype(int)
-    tp = int(np.sum((y_true_sale == 1) & (y_pred_sale == 1)))
-    fp = int(np.sum((y_true_sale == 0) & (y_pred_sale == 1)))
-    fn = int(np.sum((y_true_sale == 1) & (y_pred_sale == 0)))
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    return float(2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
-
-
-def zero_day_fpr(y_true_sale: np.ndarray, y_pred_sale: np.ndarray) -> float:
-    y_true_sale = y_true_sale.astype(int)
-    y_pred_sale = y_pred_sale.astype(int)
-    zero_mask = y_true_sale == 0
-    if int(np.sum(zero_mask)) == 0:
-        return float("nan")
-    fp = np.sum((y_pred_sale == 1) & zero_mask)
-    return float(fp / np.sum(zero_mask))
-
-
-def compute_metric_bundle(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    y_true_sale: np.ndarray,
-    metric_name: str,
-    eps: float,
-) -> Dict[str, float]:
-    eps = _validate_eps(eps)
-    yt, yp, valid = _prepare_metric_arrays(y_true, y_pred)
-    ys = np.asarray(y_true_sale).reshape(-1)
-    if ys.shape[0] != yt.shape[0]:
-        raise ValueError("y_true_sale must have the same length as y_true/y_pred")
-    ys = ys[valid].astype(int)
-    yt = yt[valid]
-    yp = yp[valid]
-
-    epsilon_mape = safe_mape(yt, yp, eps=eps)
-    cap_mape = bounded_mape(yt, yp, eps=eps, ape_cap=100.0)
-
-    if metric_name == "bounded_mape":
-        main_mape = cap_mape
-    elif metric_name == "safe_mape":
-        main_mape = epsilon_mape
-    else:
-        raise ValueError("metric_name must be one of: bounded_mape, safe_mape")
-
-    y_pred_sale = (yp > 0).astype(int)
-    return {
-        "MAPE_0_100": float(main_mape),
-        "EPSILON_MAPE_PCT": float(epsilon_mape),
-        "CAP_MAPE_0_100": float(cap_mape),
-        "POSITIVE_ONLY_MAPE_PCT": float(positive_only_mape(yt, yp)),
-        "WMAPE_0_100": float(wmape(yt, yp, eps=eps)),
-        "OCCURRENCE_F1": float(occurrence_f1(ys, y_pred_sale)),
-        "ZERO_DAY_FPR": float(zero_day_fpr(ys, y_pred_sale)),
+def _recursive_zinb_forecast(
+    train_panel: pd.DataFrame,
+    test_panel: pd.DataFrame,
+    fit_obj: Mapping[str, Any],
+    nonzero_threshold: float,
+    output_col: str = "pred_zinb",
+    p_col: str = "p_nonzero_zinb",
+) -> pd.DataFrame:
+    cluster_map = (
+        train_panel[["product_family_name", "cluster"]]
+        .drop_duplicates()
+        .set_index("product_family_name")["cluster"]
+        .to_dict()
+    )
+    sku_list = sorted(cluster_map.keys())
+    history_sales: Dict[str, List[float]] = {
+        sku: train_panel.loc[train_panel["product_family_name"] == sku, "total_sales"].astype(float).tolist()
+        for sku in sku_list
+    }
+    history_occ: Dict[str, List[int]] = {
+        sku: [int(v > 0) for v in history_sales[sku]]
+        for sku in sku_list
     }
 
+    rows: List[pd.DataFrame] = []
+    test_dates = sorted(pd.to_datetime(test_panel["date"].unique()))
+    for current_date in test_dates:
+        feat_rows: List[Dict[str, Any]] = []
+        for sku in sku_list:
+            row = _history_feature_row(current_date, history_sales[sku], history_occ[sku])
+            row["date"] = current_date
+            row["product_family_name"] = sku
+            row["cluster"] = cluster_map[sku]
+            feat_rows.append(row)
 
-def _load_daily(train_path: str | Path, test_path: str | Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    train_daily = pd.read_parquet(train_path)
-    test_daily = pd.read_parquet(test_path)
+        feat_df = pd.DataFrame(feat_rows)
+        mean_pred, p_nonzero = _predict_count_model(fit_obj, feat_df)
+        pred = np.where(p_nonzero >= nonzero_threshold, mean_pred, 0.0)
+        pred = np.clip(pred, 0.0, None)
 
-    for df in (train_daily, test_daily):
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
-        df["product_family_name"] = df["product_family_name"].astype("string").str.strip()
-        df["cluster"] = pd.to_numeric(df["cluster"], errors="coerce").astype("Int64")
-        df["total_sales"] = pd.to_numeric(df["total_sales"], errors="coerce").fillna(0.0)
+        feat_df[p_col] = p_nonzero
+        feat_df[output_col] = pred
+        rows.append(feat_df[["date", "product_family_name", "cluster", p_col, output_col]])
 
-    train_daily = (
-        train_daily.groupby(["date", "product_family_name", "cluster"], as_index=False)["total_sales"]
-        .sum()
-        .sort_values(["product_family_name", "date"])
-        .reset_index(drop=True)
+        for sku, pred_value, p_value in zip(feat_df["product_family_name"], pred.tolist(), p_nonzero.tolist()):
+            history_sales[sku].append(float(pred_value))
+            history_occ[sku].append(int(p_value >= nonzero_threshold and pred_value > 0))
+
+    pred_df = pd.concat(rows, ignore_index=True)
+    pred_df = pred_df.merge(
+        test_panel[["date", "product_family_name", "cluster", "total_sales"]],
+        on=["date", "product_family_name", "cluster"],
+        how="left",
     )
-    test_daily = (
-        test_daily.groupby(["date", "product_family_name", "cluster"], as_index=False)["total_sales"]
-        .sum()
-        .sort_values(["product_family_name", "date"])
-        .reset_index(drop=True)
-    )
-    return train_daily, test_daily
+    pred_df["y"] = pred_df["total_sales"].astype(float)
+    pred_df["is_sale"] = (pred_df["y"] > 0).astype(int)
+    return pred_df.drop(columns=["total_sales"])
 
 
-def _build_zero_filled_panel(
-    train_raw: pd.DataFrame, test_raw: pd.DataFrame
+def _split_train_holdout_panel(
+    train_panel: pd.DataFrame,
+    holdout_days: int,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    sku_map = train_raw[["product_family_name", "cluster"]].drop_duplicates()
-    sku_list = sku_map["product_family_name"].tolist()
+    unique_dates = np.array(sorted(pd.to_datetime(train_panel["date"].dropna().unique())))
+    if unique_dates.size < 56:
+        raise ValueError("Not enough training dates for parameter search.")
 
-    train_dates = pd.date_range(train_raw["date"].min(), train_raw["date"].max(), freq="D")
-    test_dates = pd.date_range(test_raw["date"].min(), test_raw["date"].max(), freq="D")
+    holdout_days = int(max(14, holdout_days))
+    holdout_days = int(min(holdout_days, unique_dates.size // 3))
+    cut_date = pd.Timestamp(unique_dates[-holdout_days])
 
-    train_grid = pd.MultiIndex.from_product(
-        [sku_list, train_dates], names=["product_family_name", "date"]
-    ).to_frame(index=False)
-    test_grid = pd.MultiIndex.from_product(
-        [sku_list, test_dates], names=["product_family_name", "date"]
-    ).to_frame(index=False)
-
-    train_grid = train_grid.merge(sku_map, on="product_family_name", how="left")
-    test_grid = test_grid.merge(sku_map, on="product_family_name", how="left")
-
-    train_panel = train_grid.merge(
-        train_raw, on=["date", "product_family_name", "cluster"], how="left"
-    )
-    test_panel = test_grid.merge(
-        test_raw, on=["date", "product_family_name", "cluster"], how="left"
-    )
-
-    train_panel["total_sales"] = train_panel["total_sales"].fillna(0.0)
-    test_panel["total_sales"] = test_panel["total_sales"].fillna(0.0)
-    return train_panel, test_panel
+    core_panel = train_panel[train_panel["date"] < cut_date].copy()
+    holdout_panel = train_panel[train_panel["date"] >= cut_date].copy()
+    if core_panel.empty or holdout_panel.empty:
+        raise ValueError("Invalid train/holdout split generated for parameter search.")
+    return core_panel, holdout_panel
 
 
-def _build_features(train_panel: pd.DataFrame, test_panel: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def _positive_underprediction_pct(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1.0) -> float:
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    mask = y_true > 0
+    if int(np.sum(mask)) == 0:
+        return 0.0
+    under = np.maximum(y_true[mask] - y_pred[mask], 0.0)
+    denom = np.maximum(np.abs(y_true[mask]), eps)
+    return float(np.mean(under / denom) * 100.0)
+
+
+def _candidate_caps(train_feat: pd.DataFrame) -> List[int]:
+    positive = train_feat.loc[train_feat["y"] > 0, "y"].to_numpy(dtype=float)
+    if positive.size == 0:
+        return [DEFAULT_ZINB_CLIP_MAX_CAP]
+    q995 = int(np.ceil(np.quantile(positive, 0.995)))
+    q999 = int(np.ceil(np.quantile(positive, 0.999)))
+    cap_base = int(np.clip(q995, DEFAULT_ZINB_CLIP_MAX_CAP, 300))
+    cap_loose = int(np.clip(max(q999, cap_base), DEFAULT_ZINB_CLIP_MAX_CAP, 400))
+    return sorted(set([DEFAULT_ZINB_CLIP_MAX_CAP, cap_base, cap_loose]))
+
+
+def _search_zinb_params(
+    train_panel: pd.DataFrame,
+    eps_mape: float,
+    metric_name: str,
+    holdout_days: int = SEARCH_HOLDOUT_DAYS_DEFAULT,
+    tuning_objective: str = DEFAULT_TUNING_OBJECTIVE,
+) -> Tuple[Dict[str, Any], pd.DataFrame]:
+    core_panel, holdout_panel = _split_train_holdout_panel(train_panel, holdout_days=holdout_days)
+    core_feat = _build_train_features(core_panel)
+    actual_holdout_days = int(len(sorted(pd.to_datetime(holdout_panel["date"].dropna().unique()))))
+
+    threshold_grid = [0.40, 0.50]
+    clip_q_grid = [DEFAULT_ZINB_CLIP_Q, 0.99]
+    cap_grid = _candidate_caps(core_feat)
+
+    early_dates = np.array(sorted(pd.to_datetime(holdout_panel["date"].dropna().unique())))
+    early_dates = set(pd.to_datetime(early_dates[: min(14, len(early_dates))]))
+
+    trial_rows: List[Dict[str, Any]] = []
+    best_row: Optional[Dict[str, Any]] = None
+
+    for threshold, clip_q, clip_max_cap in product(threshold_grid, clip_q_grid, cap_grid):
+        fit_obj = _fit_zinb_with_config(
+            train_feat=core_feat,
+            clip_q=clip_q,
+            clip_max_cap=clip_max_cap,
+            maxiter=200,
+        )
+        pred_df = _recursive_zinb_forecast(
+            train_panel=core_panel,
+            test_panel=holdout_panel,
+            fit_obj=fit_obj,
+            nonzero_threshold=threshold,
+        )
+
+        overall_bundle = compute_metric_bundle(
+            y_true=pred_df["y"].to_numpy(dtype=float),
+            y_pred=pred_df["pred_zinb"].to_numpy(dtype=float),
+            y_true_sale=pred_df["is_sale"].to_numpy(dtype=int),
+            metric_name=metric_name,
+            eps=eps_mape,
+        )
+
+        early_mask = pred_df["date"].isin(early_dates)
+        early_bundle = compute_metric_bundle(
+            y_true=pred_df.loc[early_mask, "y"].to_numpy(dtype=float),
+            y_pred=pred_df.loc[early_mask, "pred_zinb"].to_numpy(dtype=float),
+            y_true_sale=pred_df.loc[early_mask, "is_sale"].to_numpy(dtype=int),
+            metric_name=metric_name,
+            eps=eps_mape,
+        )
+        early_under = _positive_underprediction_pct(
+            y_true=pred_df.loc[early_mask, "y"].to_numpy(dtype=float),
+            y_pred=pred_df.loc[early_mask, "pred_zinb"].to_numpy(dtype=float),
+            eps=eps_mape,
+        )
+
+        if tuning_objective == "wmape":
+            overall_primary = float(overall_bundle["WMAPE_0_100"])
+            early_primary = float(early_bundle["WMAPE_0_100"])
+        elif tuning_objective == "mape":
+            overall_primary = float(overall_bundle["MAPE_0_100"])
+            early_primary = float(early_bundle["MAPE_0_100"])
+        else:
+            raise ValueError("tuning_objective must be one of: wmape, mape")
+
+        score = 0.60 * overall_primary + 0.25 * early_primary + 0.15 * float(early_under)
+        if fit_obj.get("status") != "ok":
+            score += 25.0
+        row = {
+            "score": float(score),
+            "tuning_objective": tuning_objective,
+            "threshold": float(threshold),
+            "clip_q": float(clip_q),
+            "clip_max_cap": int(clip_max_cap),
+            "fit_status": fit_obj.get("status"),
+            "overall_mape_0_100": float(overall_bundle["MAPE_0_100"]),
+            "overall_wmape_0_100": float(overall_bundle["WMAPE_0_100"]),
+            "early_mape_0_100": float(early_bundle["MAPE_0_100"]),
+            "early_wmape_0_100": float(early_bundle["WMAPE_0_100"]),
+            "early_underprediction_pct": float(early_under),
+            "pred_nonzero_rate": float(np.mean(pred_df["pred_zinb"].to_numpy(dtype=float) > 0)),
+            "actual_nonzero_rate": float(np.mean(pred_df["y"].to_numpy(dtype=float) > 0)),
+        }
+        trial_rows.append(row)
+        if best_row is None or (
+            row["score"],
+            row["early_wmape_0_100"] if tuning_objective == "wmape" else row["early_mape_0_100"],
+            row["overall_wmape_0_100"] if tuning_objective == "wmape" else row["overall_mape_0_100"],
+        ) < (
+            best_row["score"],
+            best_row["early_wmape_0_100"] if tuning_objective == "wmape" else best_row["early_mape_0_100"],
+            best_row["overall_wmape_0_100"] if tuning_objective == "wmape" else best_row["overall_mape_0_100"],
+        ):
+            best_row = row
+
+    if best_row is None:
+        raise RuntimeError("ZINB parameter search produced no valid candidates.")
+
+    trials_df = pd.DataFrame(trial_rows).sort_values(
+        ["score", "early_wmape_0_100", "overall_wmape_0_100"]
+        if tuning_objective == "wmape"
+        else ["score", "early_mape_0_100", "overall_mape_0_100"]
+    ).reset_index(drop=True)
+    best_cfg = {
+        "zinb_threshold": float(best_row["threshold"]),
+        "clip_q": float(best_row["clip_q"]),
+        "clip_max_cap": int(best_row["clip_max_cap"]),
+        "search_holdout_days": actual_holdout_days,
+        "maxiter": 200,
+        "score": float(best_row["score"]),
+        "fit_status": best_row["fit_status"],
+        "tuning_objective": tuning_objective,
+    }
+    return best_cfg, trials_df
+
+
+def _build_days_since_features(
+    train_panel: pd.DataFrame,
+    test_panel: pd.DataFrame,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     all_df = pd.concat(
-        [train_panel.assign(split="train"), test_panel.assign(split="test")], ignore_index=True
-    ).sort_values(["product_family_name", "date"])
+        [train_panel.assign(split="train"), test_panel.assign(split="test")],
+        ignore_index=True,
+    ).sort_values(["product_family_name", "date"]).reset_index(drop=True)
 
     all_df["y"] = all_df["total_sales"].astype(float)
     all_df["is_sale"] = (all_df["y"] > 0).astype(int)
 
-    all_df["dow"] = all_df["date"].dt.dayofweek
-    all_df["dom"] = all_df["date"].dt.day
-    all_df["weekofyear"] = all_df["date"].dt.isocalendar().week.astype(int)
-    all_df["month"] = all_df["date"].dt.month
-    all_df["quarter"] = all_df["date"].dt.quarter
-    all_df["is_weekend"] = all_df["dow"].isin([5, 6]).astype(int)
-    all_df["is_q4"] = (all_df["quarter"] == 4).astype(int)
-
-    g = all_df.groupby("product_family_name", group_keys=False)
-    for lag in [1, 7, 14, 28]:
-        all_df[f"lag_{lag}"] = g["y"].shift(lag)
-
-    for w in [7, 14, 28]:
-        all_df[f"roll_mean_{w}"] = g["y"].shift(1).rolling(w, min_periods=1).mean()
-        all_df[f"roll_std_{w}"] = g["y"].shift(1).rolling(w, min_periods=1).std()
-
-    # Robust implementation to avoid groupby.apply dropping group columns in newer pandas
-    last_sale_date = all_df["date"].where(all_df["y"] > 0)
-    all_df["last_sale_date"] = (
-        last_sale_date.groupby(all_df["product_family_name"]).ffill()
-    )
+    last_sale_date = all_df["date"].where(all_df["is_sale"] == 1)
+    last_sale_date = last_sale_date.groupby(all_df["product_family_name"]).ffill()
+    last_sale_date = last_sale_date.groupby(all_df["product_family_name"]).shift(1)
     all_df["days_since_last_sale"] = (
-        all_df["date"] - all_df["last_sale_date"]
-    ).dt.days
-    all_df["days_since_last_sale"] = all_df["days_since_last_sale"].fillna(999).astype(int)
-    all_df = all_df.drop(columns=["last_sale_date"])
+        (all_df["date"] - last_sale_date).dt.days.fillna(999).astype(int)
+    )
 
-    lag_roll_cols = [c for c in all_df.columns if c.startswith("lag_") or c.startswith("roll_")]
-    all_df[lag_roll_cols] = all_df[lag_roll_cols].fillna(0.0)
-
-    train_feat = all_df[all_df["split"] == "train"].copy()
-    test_feat = all_df[all_df["split"] == "test"].copy()
+    keep_cols = [
+        "date",
+        "product_family_name",
+        "cluster",
+        "y",
+        "is_sale",
+        "days_since_last_sale",
+    ]
+    train_feat = all_df.loc[all_df["split"] == "train", keep_cols].reset_index(drop=True)
+    test_feat = all_df.loc[all_df["split"] == "test", keep_cols].reset_index(drop=True)
     return train_feat, test_feat
-
-
-def _seasonal_naive_7(train_panel: pd.DataFrame, test_panel: pd.DataFrame) -> pd.DataFrame:
-    pred_list: List[pd.DataFrame] = []
-    for sku, tr in train_panel.groupby("product_family_name"):
-        te = test_panel[test_panel["product_family_name"] == sku].copy()
-        if te.empty:
-            continue
-
-        full = pd.concat(
-            [
-                tr[["date", "total_sales"]].assign(split="train"),
-                te[["date", "total_sales"]].assign(split="test"),
-            ],
-            ignore_index=True,
-        ).sort_values("date")
-        full["pred_snaive7"] = full["total_sales"].shift(7).fillna(0.0)
-
-        out = full[full["split"] == "test"][["date", "pred_snaive7"]].copy()
-        out["product_family_name"] = sku
-        pred_list.append(out)
-
-    return pd.concat(pred_list, ignore_index=True)
-
-
-def _fit_two_stage_hgb(
-    train_feat: pd.DataFrame,
-    test_feat: pd.DataFrame,
-    feature_cols: List[str],
-    cls_params: Optional[Dict[str, Any]] = None,
-    reg_params: Optional[Dict[str, Any]] = None,
-    tau: float = 0.0,
-    alpha: float = 1.0,
-    cap_value: float = np.inf,
-    peak_prob_threshold: float = 1.0,
-    peak_mult: float = 1.0,
-    smooth_gamma: float = 0.0,
-    random_state: int = 42,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    X_train = train_feat[feature_cols].astype(float)
-    y_cls = train_feat["is_sale"].astype(int).values
-    X_test = test_feat[feature_cols].astype(float)
-
-    if cls_params is None:
-        cls_params = {
-            "max_depth": 6,
-            "learning_rate": 0.05,
-            "max_iter": 300,
-            "min_samples_leaf": 50,
-        }
-    if reg_params is None:
-        reg_params = {
-            "max_depth": 6,
-            "learning_rate": 0.05,
-            "max_iter": 400,
-            "min_samples_leaf": 30,
-        }
-
-    clf = HistGradientBoostingClassifier(random_state=random_state, **cls_params)
-    clf.fit(X_train, y_cls)
-    p_sale = clf.predict_proba(X_test)[:, 1]
-
-    reg_train = train_feat[train_feat["is_sale"] == 1].copy()
-    X_reg = reg_train[feature_cols].astype(float)
-    y_reg_pos = np.log1p(reg_train["y"].astype(float).values)
-
-    reg = HistGradientBoostingRegressor(random_state=random_state, **reg_params)
-    reg.fit(X_reg, y_reg_pos)
-
-    pred_log = reg.predict(X_test)
-    pred_pos = np.expm1(pred_log).clip(min=0.0)
-    pred_final = p_sale * pred_pos
-    if tau > 0:
-        pred_final = np.where(p_sale < tau, 0.0, pred_final)
-    pred_final = alpha * pred_final
-    if peak_mult > 1.0 and peak_prob_threshold < 1.0:
-        pred_final = np.where(p_sale >= peak_prob_threshold, pred_final * peak_mult, pred_final)
-    if smooth_gamma > 0.0:
-        # Smooth prediction toward recent local level to mitigate excessive volatility
-        local_level = test_feat["roll_mean_14"].astype(float).values
-        pred_final = (1.0 - smooth_gamma) * pred_final + smooth_gamma * local_level
-    pred_final = np.clip(pred_final, 0.0, cap_value)
-    return p_sale, pred_pos, pred_final
-
-
-def _peak_underprediction_penalty(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    q: float = 0.9,
-    eps: float = 1.0,
-) -> float:
-    pos = y_true[y_true > 0]
-    if len(pos) == 0:
-        return 0.0
-    threshold = np.quantile(pos, q)
-    mask = y_true >= threshold
-    if int(np.sum(mask)) == 0:
-        return 0.0
-    under = np.maximum(y_true[mask] - y_pred[mask], 0.0)
-    return float(np.mean(under / np.maximum(y_true[mask], eps)) * 100.0)
-
-
-def _volatility_penalty(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    max_std_ratio: float = 1.15,
-    eps: float = 1.0,
-) -> float:
-    # Penalize only when predicted volatility is materially higher than actual volatility
-    std_true = float(np.std(y_true))
-    std_pred = float(np.std(y_pred))
-    ratio = std_pred / max(std_true, eps)
-    excess = max(0.0, ratio - max_std_ratio)
-    return excess * 100.0
-
-
-def _split_train_val_by_time(train_feat: pd.DataFrame, train_ratio: float = 0.8) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    unique_dates = np.array(sorted(train_feat["date"].dropna().unique()))
-    cut_idx = max(1, int(len(unique_dates) * train_ratio))
-    cut_idx = min(cut_idx, len(unique_dates) - 1)
-    cut_date = unique_dates[cut_idx - 1]
-    tr = train_feat[train_feat["date"] <= cut_date].copy()
-    va = train_feat[train_feat["date"] > cut_date].copy()
-    return tr, va
-
-
-def _objective_from_bundle(metric_bundle: Dict[str, float], tuning_objective: str) -> float:
-    if tuning_objective == "wmape":
-        return float(metric_bundle["WMAPE_0_100"])
-    if tuning_objective == "mape":
-        return float(metric_bundle["MAPE_0_100"])
-    if tuning_objective == "hybrid":
-        pos = metric_bundle["POSITIVE_ONLY_MAPE_PCT"]
-        pos = metric_bundle["MAPE_0_100"] if np.isnan(pos) else pos
-        return float(0.70 * metric_bundle["WMAPE_0_100"] + 0.30 * pos)
-    raise ValueError("tuning_objective must be one of: wmape, mape, hybrid")
-
-
-def _search_two_stage_params(
-    train_feat: pd.DataFrame,
-    feature_cols: List[str],
-    metric_name: str,
-    eps_mape: float,
-    tuning_objective: str = "wmape",
-    max_trials_per_model_pair: int = 500,
-    random_state: int = 42,
-) -> Tuple[Dict[str, Any], pd.DataFrame]:
-    tr, va = _split_train_val_by_time(train_feat, train_ratio=0.8)
-    X_va = va[feature_cols].astype(float)
-    y_va = va["y"].astype(float).values
-
-    cls_grid = [
-        {"max_depth": 4, "learning_rate": 0.05, "max_iter": 300, "min_samples_leaf": 60},
-        {"max_depth": 5, "learning_rate": 0.04, "max_iter": 350, "min_samples_leaf": 50},
-        {"max_depth": 6, "learning_rate": 0.03, "max_iter": 500, "min_samples_leaf": 80},
-        {"max_depth": 7, "learning_rate": 0.02, "max_iter": 650, "min_samples_leaf": 100},
-    ]
-    reg_grid = [
-        {"loss": "squared_error", "max_depth": 4, "learning_rate": 0.05, "max_iter": 400, "min_samples_leaf": 40},
-        {"loss": "squared_error", "max_depth": 6, "learning_rate": 0.04, "max_iter": 500, "min_samples_leaf": 30},
-        {"loss": "quantile", "quantile": 0.60, "max_depth": 6, "learning_rate": 0.03, "max_iter": 650, "min_samples_leaf": 50},
-        {"loss": "quantile", "quantile": 0.70, "max_depth": 6, "learning_rate": 0.03, "max_iter": 650, "min_samples_leaf": 50},
-        {"loss": "quantile", "quantile": 0.80, "max_depth": 7, "learning_rate": 0.02, "max_iter": 750, "min_samples_leaf": 60},
-    ]
-    tau_grid = [0.00, 0.05, 0.10, 0.15, 0.20]
-    alpha_grid = [0.85, 1.0, 1.15, 1.30]
-    cap_q_grid = [0.995, 0.999, 1.0]
-    peak_prob_threshold_grid = [1.0, 0.80, 0.85, 0.90]
-    peak_mult_grid = [1.0, 1.05, 1.10, 1.15]
-    smooth_gamma_grid = [0.0, 0.05, 0.10, 0.20, 0.30]
-    rng = np.random.RandomState(random_state)
-
-    tr_positive = tr[tr["y"] > 0]["y"].values
-    if len(tr_positive) == 0:
-        default_cfg = {
-            "cls_params": cls_grid[1],
-            "reg_params": reg_grid[1],
-            "tau": 0.0,
-            "alpha": 1.0,
-            "cap_q": 1.0,
-            "cap_value": np.inf,
-            "peak_prob_threshold": 1.0,
-            "peak_mult": 1.0,
-            "smooth_gamma": 0.0,
-        }
-        return default_cfg, pd.DataFrame([{"score": np.nan, **default_cfg}])
-
-    trial_rows: List[Dict[str, Any]] = []
-    best_score = np.inf
-    best_cfg: Optional[Dict[str, Any]] = None
-
-    for cls_params in cls_grid:
-        clf = HistGradientBoostingClassifier(random_state=random_state, **cls_params)
-        X_tr = tr[feature_cols].astype(float)
-        y_tr_cls = tr["is_sale"].astype(int).values
-        clf.fit(X_tr, y_tr_cls)
-        p_va = clf.predict_proba(X_va)[:, 1]
-
-        for reg_params in reg_grid:
-            reg_train = tr[tr["is_sale"] == 1].copy()
-            X_reg = reg_train[feature_cols].astype(float)
-            y_reg_pos = np.log1p(reg_train["y"].astype(float).values)
-            reg = HistGradientBoostingRegressor(random_state=random_state, **reg_params)
-            reg.fit(X_reg, y_reg_pos)
-            pred_pos = np.expm1(reg.predict(X_va)).clip(min=0.0)
-            raw_pred = p_va * pred_pos
-
-            param_combos = list(
-                product(cap_q_grid, tau_grid, alpha_grid, peak_prob_threshold_grid, peak_mult_grid, smooth_gamma_grid)
-            )
-            if len(param_combos) > max_trials_per_model_pair:
-                selected_idx = rng.choice(len(param_combos), size=max_trials_per_model_pair, replace=False)
-                selected_combos = [param_combos[i] for i in selected_idx]
-            else:
-                selected_combos = param_combos
-
-            va_local_level = va["roll_mean_14"].astype(float).values
-            for cap_q, tau, alpha, peak_prob_threshold, peak_mult, smooth_gamma in selected_combos:
-                cap_value = np.quantile(tr_positive, cap_q) if cap_q < 1.0 else np.inf
-                pred2 = np.where(p_va < tau, 0.0, raw_pred)
-                pred2 = alpha * pred2
-                if peak_mult > 1.0 and peak_prob_threshold < 1.0:
-                    pred2 = np.where(p_va >= peak_prob_threshold, pred2 * peak_mult, pred2)
-                if smooth_gamma > 0.0:
-                    pred2 = (1.0 - smooth_gamma) * pred2 + smooth_gamma * va_local_level
-                pred2 = np.clip(pred2, 0.0, cap_value)
-
-                metric_bundle = compute_metric_bundle(
-                    y_true=y_va,
-                    y_pred=pred2,
-                    y_true_sale=(y_va > 0).astype(int),
-                    metric_name=metric_name,
-                    eps=eps_mape,
-                )
-                objective_value = _objective_from_bundle(metric_bundle, tuning_objective=tuning_objective)
-                peak_pen = _peak_underprediction_penalty(
-                    y_true=y_va,
-                    y_pred=pred2,
-                    q=0.9,
-                    eps=eps_mape,
-                )
-                vol_pen = _volatility_penalty(
-                    y_true=y_va,
-                    y_pred=pred2,
-                    max_std_ratio=1.15,
-                    eps=eps_mape,
-                )
-                # Optimize closeness via WMAPE-centered objective with peak/volatility regularization.
-                score = objective_value + 0.12 * peak_pen + 0.35 * vol_pen
-                row = {
-                    "score": score,
-                    "objective_value": objective_value,
-                    "objective_name": tuning_objective,
-                    "metric_mape": metric_bundle["MAPE_0_100"],
-                    "metric_wmape": metric_bundle["WMAPE_0_100"],
-                    "metric_pos_mape": metric_bundle["POSITIVE_ONLY_MAPE_PCT"],
-                    "peak_under_penalty": peak_pen,
-                    "volatility_penalty": vol_pen,
-                    "cls_params": cls_params,
-                    "reg_params": reg_params,
-                    "tau": tau,
-                    "alpha": alpha,
-                    "cap_q": cap_q,
-                    "cap_value": cap_value,
-                    "peak_prob_threshold": peak_prob_threshold,
-                    "peak_mult": peak_mult,
-                    "smooth_gamma": smooth_gamma,
-                }
-                trial_rows.append(row)
-                if score < best_score:
-                    best_score = score
-                    best_cfg = {
-                        "cls_params": cls_params,
-                        "reg_params": reg_params,
-                        "tau": tau,
-                        "alpha": alpha,
-                        "cap_q": cap_q,
-                        "cap_value": cap_value,
-                        "peak_prob_threshold": peak_prob_threshold,
-                        "peak_mult": peak_mult,
-                        "smooth_gamma": smooth_gamma,
-                    }
-
-    trials_df = pd.DataFrame(trial_rows).sort_values("score").reset_index(drop=True)
-    if best_cfg is None:
-        best_cfg = {
-            "cls_params": cls_grid[1],
-            "reg_params": reg_grid[1],
-            "tau": 0.0,
-            "alpha": 1.0,
-            "cap_q": 1.0,
-            "cap_value": np.inf,
-            "peak_prob_threshold": 1.0,
-            "peak_mult": 1.0,
-            "smooth_gamma": 0.0,
-        }
-    return best_cfg, trials_df
 
 
 def _periodize_test(df: pd.DataFrame, n_periods: int = 4) -> pd.DataFrame:
@@ -592,14 +435,17 @@ def _periodize_test(df: pd.DataFrame, n_periods: int = 4) -> pd.DataFrame:
 
 def _build_error_quantiles(ape_box_df: pd.DataFrame) -> pd.DataFrame:
     if ape_box_df.empty:
-        return pd.DataFrame(columns=["method", "period", "count", "q50", "q75", "q90", "q95", "q99", "mean"])
+        return pd.DataFrame(
+            columns=["method", "period", "count", "q50", "q75", "q90", "q95", "q99", "mean"]
+        )
+
     rows: List[Dict[str, Any]] = []
-    for (m, p), grp in ape_box_df.groupby(["method", "period"]):
-        arr = grp["APE_0_100"].values.astype(float)
+    for (method, period), grp in ape_box_df.groupby(["method", "period"]):
+        arr = grp["APE_0_100"].to_numpy(dtype=float)
         rows.append(
             {
-                "method": m,
-                "period": p,
+                "method": method,
+                "period": period,
                 "count": int(len(arr)),
                 "q50": float(np.quantile(arr, 0.50)),
                 "q75": float(np.quantile(arr, 0.75)),
@@ -612,23 +458,84 @@ def _build_error_quantiles(ape_box_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values(["method", "period"]).reset_index(drop=True)
 
 
-def run_c1_pipeline(
-    train_path: str | Path = "data/forecasting/train_daily.parquet",
-    test_path: str | Path = "data/forecasting/test_daily.parquet",
+def _build_reporting_tables(
+    pred_df: pd.DataFrame,
+    eps_mape: float,
+    metric_name: str,
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    method_map = [("naive7", "pred_naive7"), ("zinb", "pred_zinb")]
+
+    overall_rows: List[Dict[str, Any]] = []
+    for method, col in method_map:
+        metric_bundle = compute_metric_bundle(
+            y_true=pred_df["y"].to_numpy(dtype=float),
+            y_pred=pred_df[col].to_numpy(dtype=float),
+            y_true_sale=pred_df["is_sale"].to_numpy(dtype=int),
+            metric_name=metric_name,
+            eps=eps_mape,
+        )
+        overall_rows.append({"method": method, **metric_bundle})
+    metrics_overall = pd.DataFrame(overall_rows).sort_values("MAPE_0_100").reset_index(drop=True)
+
+    period_rows: List[Dict[str, Any]] = []
+    ape_rows: List[pd.DataFrame] = []
+    for method, col in method_map:
+        ape_eps = pointwise_safe_ape(
+            pred_df["y"].to_numpy(dtype=float),
+            pred_df[col].to_numpy(dtype=float),
+            eps=eps_mape,
+        )
+        ape_cap = np.clip(ape_eps, 0.0, 100.0)
+        box_part = pred_df[["date", "period", "product_family_name"]].copy()
+        box_part["method"] = method
+        box_part["APE_EPS_PCT"] = ape_eps
+        box_part["APE_CAP_0_100"] = ape_cap
+        box_part["APE_0_100"] = ape_cap
+        ape_rows.append(box_part)
+
+        for period, grp in pred_df.groupby("period"):
+            metric_bundle = compute_metric_bundle(
+                y_true=grp["y"].to_numpy(dtype=float),
+                y_pred=grp[col].to_numpy(dtype=float),
+                y_true_sale=grp["is_sale"].to_numpy(dtype=int),
+                metric_name=metric_name,
+                eps=eps_mape,
+            )
+            period_rows.append({"method": method, "period": period, **metric_bundle})
+
+    ape_box_df = pd.concat(ape_rows, ignore_index=True)
+    metrics_by_period = (
+        pd.DataFrame(period_rows).sort_values(["method", "period"]).reset_index(drop=True)
+    )
+
+    ape_box_df_trimmed = ape_box_df.copy()
+    if not ape_box_df_trimmed.empty:
+        keep_idx: List[int] = []
+        for (_, _), grp in ape_box_df_trimmed.groupby(["method", "period"]):
+            cap = float(np.quantile(grp["APE_0_100"].to_numpy(dtype=float), 0.99))
+            keep_idx.extend(grp.index[grp["APE_0_100"] <= cap].tolist())
+        ape_box_df_trimmed = ape_box_df_trimmed.loc[sorted(set(keep_idx))].copy()
+
+    error_quantiles = _build_error_quantiles(ape_box_df)
+    return metrics_overall, metrics_by_period, ape_box_df, ape_box_df_trimmed, error_quantiles
+
+
+def run_c1_forecasting_2(
+    train_path: str | Path = TRAIN_DEFAULT,
+    test_path: str | Path = TEST_DEFAULT,
     cluster_id: int = 1,
     n_periods: int = 4,
     eps_mape: float = 1.0,
     metric_name: str = "bounded_mape",
-    tune: bool = True,
-    tuning_objective: str = "wmape",
-    max_trials_per_model_pair: int = 500,
-    feature_cols: List[str] | None = None,
-    random_state: int = 42,
-    prediction_output_path: str | Path = "forecasting/c1_prediction.parquet",
-) -> C1Artifacts:
-    if feature_cols is None:
-        feature_cols = DEFAULT_FEATURE_COLS
-
+    zinb_threshold: Optional[float] = None,
+    tune: bool = False,
+    tuning_objective: str = DEFAULT_TUNING_OBJECTIVE,
+    search_holdout_days: int = SEARCH_HOLDOUT_DAYS_DEFAULT,
+    search_enabled: Optional[bool] = None,
+    save_predictions: bool = True,
+    prediction_output_path: str | Path = PREDICTION_OUTPUT_DEFAULT,
+    metrics_output_path: Optional[str | Path] = None,
+) -> C1Forecasting2Artifacts:
     train_daily, test_daily = _load_daily(train_path, test_path)
     train_raw = train_daily[train_daily["cluster"] == cluster_id].copy()
     test_raw = test_daily[test_daily["cluster"] == cluster_id].copy()
@@ -637,144 +544,102 @@ def run_c1_pipeline(
         raise ValueError(f"No rows found for cluster={cluster_id} in train/test.")
 
     train_panel, test_panel = _build_zero_filled_panel(train_raw, test_raw)
-    train_feat, test_feat = _build_features(train_panel, test_panel)
+    train_model_feat = _build_train_features(train_panel)
+    train_feat, test_feat = _build_days_since_features(train_panel, test_panel)
 
-    # Baseline: Seasonal Naive(s=7)
-    snaive_pred = _seasonal_naive_7(train_panel, test_panel)
+    pred_df = _build_naive7_predictions(train_panel, test_panel)
+
+    do_tune = bool(tune if search_enabled is None else search_enabled)
 
     tuning_trials: Optional[pd.DataFrame] = None
     tuning_best_config: Optional[Dict[str, Any]] = None
-
-    # Champion: two-stage HGB, optionally tuned on time-based pseudo validation split
-    if tune:
-        tuning_best_config, tuning_trials = _search_two_stage_params(
-            train_feat=train_feat,
-            feature_cols=feature_cols,
-            metric_name=metric_name,
+    if do_tune:
+        tuning_best_config, tuning_trials = _search_zinb_params(
+            train_panel=train_panel,
             eps_mape=eps_mape,
+            metric_name=metric_name,
+            holdout_days=search_holdout_days,
             tuning_objective=tuning_objective,
-            max_trials_per_model_pair=max_trials_per_model_pair,
-            random_state=random_state,
-        )
-        p_sale, pred_pos, pred_two_stage = _fit_two_stage_hgb(
-            train_feat=train_feat,
-            test_feat=test_feat,
-            feature_cols=feature_cols,
-            cls_params=tuning_best_config["cls_params"],
-            reg_params=tuning_best_config["reg_params"],
-            tau=tuning_best_config["tau"],
-            alpha=tuning_best_config["alpha"],
-            cap_value=tuning_best_config["cap_value"],
-            peak_prob_threshold=tuning_best_config["peak_prob_threshold"],
-            peak_mult=tuning_best_config["peak_mult"],
-            smooth_gamma=tuning_best_config["smooth_gamma"],
-            random_state=random_state,
         )
     else:
-        p_sale, pred_pos, pred_two_stage = _fit_two_stage_hgb(
-            train_feat=train_feat,
-            test_feat=test_feat,
-            feature_cols=feature_cols,
-            random_state=random_state,
-        )
+        tuning_best_config = {
+            "zinb_threshold": DEFAULT_ZINB_THRESHOLD,
+            "clip_q": DEFAULT_ZINB_CLIP_Q,
+            "clip_max_cap": DEFAULT_ZINB_CLIP_MAX_CAP,
+            "search_holdout_days": 0,
+            "maxiter": 200,
+            "score": float("nan"),
+            "fit_status": "fixed_optimal_params_tuning_disabled",
+            "tuning_objective": tuning_objective,
+        }
 
-    pred_df = test_feat[
-        ["date", "product_family_name", "cluster", "y", "is_sale"]
-    ].copy()
-    pred_df = pred_df.merge(
-        snaive_pred, on=["date", "product_family_name"], how="left"
+    chosen_threshold = float(
+        tuning_best_config["zinb_threshold"] if zinb_threshold is None else zinb_threshold
     )
-    pred_df["pred_snaive7"] = pred_df["pred_snaive7"].fillna(0.0)
-    pred_df["p_sale"] = p_sale
-    pred_df["pred_pos_if_sale"] = pred_pos
-    pred_df["pred_two_stage"] = pred_two_stage
+    zinb_fit = _fit_zinb_with_config(
+        train_feat=train_model_feat,
+        clip_q=float(tuning_best_config["clip_q"]),
+        clip_max_cap=int(tuning_best_config["clip_max_cap"]),
+        maxiter=int(tuning_best_config["maxiter"]),
+    )
+    zinb_pred = _recursive_zinb_forecast(
+        train_panel=train_panel,
+        test_panel=test_panel,
+        fit_obj=zinb_fit,
+        nonzero_threshold=chosen_threshold,
+    )
 
-    # Overall metrics
-    overall_rows = []
-    for method, col in [("snaive7", "pred_snaive7"), ("two_stage_hgb", "pred_two_stage")]:
-        metric_bundle = compute_metric_bundle(
-            y_true=pred_df["y"].values,
-            y_pred=pred_df[col].values,
-            y_true_sale=pred_df["is_sale"].values,
-            metric_name=metric_name,
-            eps=eps_mape,
-        )
-        overall_rows.append({"method": method, **metric_bundle})
-    metrics_overall = pd.DataFrame(overall_rows).sort_values("MAPE_0_100")
-
-    # Period metrics + boxplot data
+    pred_df = pred_df.merge(
+        zinb_pred[["date", "product_family_name", "cluster", "pred_zinb", "p_nonzero_zinb"]],
+        on=["date", "product_family_name", "cluster"],
+        how="left",
+    )
+    pred_df["pred_zinb"] = pred_df["pred_zinb"].fillna(0.0)
+    pred_df["p_nonzero_zinb"] = pred_df["p_nonzero_zinb"].fillna(0.0)
+    pred_df["p_sale"] = pred_df["p_nonzero_zinb"]
     pred_df = _periodize_test(pred_df, n_periods=n_periods)
 
-    period_rows = []
-    ape_rows = []
-    for method, col in [("snaive7", "pred_snaive7"), ("two_stage_hgb", "pred_two_stage")]:
-        ape_eps = pointwise_safe_ape(pred_df["y"].values, pred_df[col].values, eps=eps_mape)
-        ape_cap = np.clip(ape_eps, 0.0, 100.0)
-        tmp = pred_df[["date", "period", "product_family_name"]].copy()
-        tmp["method"] = method
-        tmp["APE_EPS_PCT"] = ape_eps
-        tmp["APE_CAP_0_100"] = ape_cap
-        tmp["APE_0_100"] = ape_cap
-        ape_rows.append(tmp)
-        for period, grp in pred_df.groupby("period"):
-            metric_bundle = compute_metric_bundle(
-                y_true=grp["y"].values,
-                y_pred=grp[col].values,
-                y_true_sale=grp["is_sale"].values,
-                metric_name=metric_name,
-                eps=eps_mape,
-            )
-            period_rows.append({"method": method, "period": period, **metric_bundle})
+    (
+        metrics_overall,
+        metrics_by_period,
+        ape_box_df,
+        ape_box_df_trimmed,
+        error_quantiles,
+    ) = _build_reporting_tables(pred_df=pred_df, eps_mape=eps_mape, metric_name=metric_name)
 
-    ape_box_df = pd.concat(ape_rows, ignore_index=True)
-    ape_box_df_positive = pd.DataFrame(
-        columns=[
-            "date",
-            "period",
-            "product_family_name",
-            "method",
-            "APE_EPS_PCT",
-            "APE_CAP_0_100",
-            "APE_0_100",
-        ]
-    )
-    ape_box_df_trimmed = ape_box_df.copy()
-    if not ape_box_df_trimmed.empty:
-        # Keep error distribution informative by trimming per method-period at 99th percentile
-        keep_idx = []
-        for (m, p), grp in ape_box_df_trimmed.groupby(["method", "period"]):
-            cap = np.quantile(grp["APE_0_100"].values, 0.99)
-            keep_idx.extend(grp.index[grp["APE_0_100"] <= cap].tolist())
-        ape_box_df_trimmed = ape_box_df_trimmed.loc[keep_idx].copy()
+    prediction_output_path_str: Optional[str] = None
+    if save_predictions:
+        prediction_output_path_str = _save_table(pred_df, prediction_output_path)
 
-    # Build positive-only boxplot data with same APE definition
-    for method, col in [("snaive7", "pred_snaive7"), ("two_stage_hgb", "pred_two_stage")]:
-        grp = pred_df[pred_df["y"] > 0][["date", "period", "product_family_name", "y"]].copy()
-        if grp.empty:
-            continue
-        ape_pos = pointwise_safe_ape(grp["y"].values, pred_df.loc[grp.index, col].values, eps=1e-12)
-        grp["method"] = method
-        grp["APE_EPS_PCT"] = ape_pos
-        grp["APE_CAP_0_100"] = np.clip(ape_pos, 0.0, 100.0)
-        grp["APE_0_100"] = grp["APE_CAP_0_100"]
-        ape_box_df_positive = pd.concat(
-            [ape_box_df_positive, grp[["date", "period", "product_family_name", "method", "APE_EPS_PCT", "APE_CAP_0_100", "APE_0_100"]]],
-            ignore_index=True,
-        )
+    metadata = {
+        "cluster_id": cluster_id,
+        "train_path": str(train_path),
+        "test_path": str(test_path),
+        "train_rows": int(len(train_raw)),
+        "test_rows": int(len(test_raw)),
+        "n_periods": int(n_periods),
+        "metric_name": metric_name,
+        "eps_mape": float(eps_mape),
+        "zinb_threshold": float(chosen_threshold),
+        "zinb_status": zinb_fit.get("status"),
+        "tune": bool(do_tune),
+        "tuning_objective": tuning_objective,
+        "search_holdout_days": int(tuning_best_config["search_holdout_days"]),
+        "clip_q": float(tuning_best_config["clip_q"]),
+        "clip_max_cap": int(tuning_best_config["clip_max_cap"]),
+        "split_policy": (
+            "strict parquet train/test for final reporting; parameter search uses train-tail holdout only"
+            if do_tune
+            else "strict parquet train/test only; tune disabled and default ZINB parameters used"
+        ),
+        "baseline_col": "pred_naive7",
+        "model_col": "pred_zinb",
+    }
 
-    error_quantiles = _build_error_quantiles(ape_box_df)
-    metrics_by_period = (
-        pd.DataFrame(period_rows)
-        .sort_values(["method", "period"])
-        .reset_index(drop=True)
-    )
-
-    # Persist prediction output for downstream analysis/reporting
-    prediction_output_path = str(prediction_output_path)
-    Path(prediction_output_path).parent.mkdir(parents=True, exist_ok=True)
-    pred_df.to_parquet(prediction_output_path, index=False)
-
-    return C1Artifacts(
+    return C1Forecasting2Artifacts(
+        cluster_id=cluster_id,
+        train_raw=train_raw,
+        test_raw=test_raw,
         train_panel=train_panel,
         test_panel=test_panel,
         train_feat=train_feat,
@@ -783,10 +648,66 @@ def run_c1_pipeline(
         metrics_overall=metrics_overall,
         metrics_by_period=metrics_by_period,
         ape_box_df=ape_box_df,
-        ape_box_df_positive=ape_box_df_positive,
+        ape_box_df_positive=None,
         ape_box_df_trimmed=ape_box_df_trimmed,
         error_quantiles=error_quantiles,
         tuning_trials=tuning_trials,
         tuning_best_config=tuning_best_config,
-        prediction_output_path=prediction_output_path,
+        metadata=metadata,
+        prediction_output_path=prediction_output_path_str,
+        metrics_output_path=None,
     )
+
+
+def _build_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="C1 forecasting: naive7 vs leak-safe ZINB")
+    parser.add_argument("--train-path", default=TRAIN_DEFAULT)
+    parser.add_argument("--test-path", default=TEST_DEFAULT)
+    parser.add_argument("--cluster-id", type=int, default=1)
+    parser.add_argument("--n-periods", type=int, default=4)
+    parser.add_argument("--eps-mape", type=float, default=1.0)
+    parser.add_argument("--metric-name", default="bounded_mape", choices=["bounded_mape", "safe_mape"])
+    parser.add_argument("--zinb-threshold", type=float, default=None)
+    parser.add_argument("--tune", action="store_true")
+    parser.add_argument("--tuning-objective", default=DEFAULT_TUNING_OBJECTIVE, choices=["wmape", "mape"])
+    parser.add_argument("--search-holdout-days", type=int, default=SEARCH_HOLDOUT_DAYS_DEFAULT)
+    parser.add_argument("--save-predictions", action="store_true")
+    parser.add_argument("--prediction-output-path", default=PREDICTION_OUTPUT_DEFAULT)
+    return parser
+
+
+def main(argv: Optional[Sequence[str]] = None) -> None:
+    parser = _build_arg_parser()
+    args = parser.parse_args(argv)
+    art = run_c1_forecasting_2(
+        train_path=args.train_path,
+        test_path=args.test_path,
+        cluster_id=args.cluster_id,
+        n_periods=args.n_periods,
+        eps_mape=args.eps_mape,
+        metric_name=args.metric_name,
+        zinb_threshold=args.zinb_threshold,
+        tune=args.tune,
+        tuning_objective=args.tuning_objective,
+        search_holdout_days=args.search_holdout_days,
+        save_predictions=args.save_predictions,
+        prediction_output_path=args.prediction_output_path,
+    )
+    print(
+        json.dumps(
+            {
+                "cluster_id": art.cluster_id,
+                "metrics_overall_head": art.metrics_overall.head(10).to_dict(orient="records"),
+                "metrics_by_period_head": art.metrics_by_period.head(10).to_dict(orient="records"),
+                "tuning_best_config": art.tuning_best_config,
+                "tuning_trials_head": None if art.tuning_trials is None else art.tuning_trials.head(10).to_dict(orient="records"),
+                "metadata": art.metadata,
+            },
+            indent=2,
+            default=str,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()
