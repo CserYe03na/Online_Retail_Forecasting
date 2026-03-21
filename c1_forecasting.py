@@ -2,8 +2,8 @@ from __future__ import annotations
 
 """C1 forecasting pipeline with naive7 baseline vs leak-safe ZINB.
 
-This script follows the reporting structure of ``c1_forecasting.py`` while
-keeping only the C1 comparison requested by the project:
+This module exposes the final pairwise Cluster 1 comparison requested by the
+project:
 
 - baseline: ``pred_naive7``
 - model: ``pred_zinb``
@@ -16,30 +16,29 @@ historical train data plus prior predictions only, so test targets are never
 used during forecasting.
 """
 
+import argparse
+import json
+import warnings
 from dataclasses import dataclass, field
 from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
-import argparse
-import json
-import warnings
 
 import numpy as np
 import pandas as pd
 from statsmodels.discrete.count_model import ZeroInflatedNegativeBinomialP
 from statsmodels.tools.sm_exceptions import HessianInversionWarning
 
-from c1_forecasting import compute_metric_bundle, pointwise_safe_ape
 from c1_forecasting_new import (
     COUNT_FEATURE_COLS,
     INFLATION_FEATURE_COLS,
     _build_train_features,
+    _build_zero_filled_panel,
     _history_feature_row,
     _load_daily,
     _predict_count_model,
     _prepare_design_matrices,
     _save_table,
-    _build_zero_filled_panel,
 )
 
 
@@ -51,6 +50,57 @@ DEFAULT_ZINB_THRESHOLD = 0.50
 DEFAULT_ZINB_CLIP_Q = 0.98
 DEFAULT_ZINB_CLIP_MAX_CAP = 200
 DEFAULT_TUNING_OBJECTIVE = "wmape"
+
+
+def pointwise_safe_ape(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    eps: float = 1.0,
+) -> np.ndarray:
+    yt = np.asarray(y_true, dtype=float).reshape(-1)
+    yp = np.asarray(y_pred, dtype=float).reshape(-1)
+    denom = np.maximum(np.abs(yt), float(eps))
+    return np.abs(yt - yp) / denom * 100.0
+
+
+def compute_metric_bundle(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_true_sale: np.ndarray,
+    metric_name: str,
+    eps: float = 1.0,
+) -> Dict[str, float]:
+    yt = np.asarray(y_true, dtype=float).reshape(-1)
+    yp = np.asarray(y_pred, dtype=float).reshape(-1)
+    sale = np.asarray(y_true_sale, dtype=int).reshape(-1)
+
+    valid = np.isfinite(yt) & np.isfinite(yp)
+    if valid.sum() == 0:
+        return {"MAPE_0_100": float("nan"), "WMAPE_0_100": float("nan")}
+
+    yt = yt[valid]
+    yp = yp[valid]
+    sale = sale[valid]
+
+    ape_eps = pointwise_safe_ape(yt, yp, eps=eps)
+    if metric_name == "bounded_mape":
+        mape_0_100 = float(np.mean(np.clip(ape_eps, 0.0, 100.0)))
+    elif metric_name == "safe_mape":
+        mape_0_100 = float(np.mean(ape_eps))
+    else:
+        raise ValueError("metric_name must be one of: bounded_mape, safe_mape")
+
+    wmape_0_100 = float(
+        100.0 * np.sum(np.abs(yt - yp)) / max(float(np.sum(np.abs(yt))), float(eps))
+    )
+
+    bundle = {
+        "MAPE_0_100": mape_0_100,
+        "WMAPE_0_100": wmape_0_100,
+        "pred_nonzero_rate": float(np.mean(yp > 0)),
+        "actual_nonzero_rate": float(np.mean(sale > 0)),
+    }
+    return bundle
 
 
 @dataclass
@@ -88,7 +138,10 @@ def _forecast_naive7(series: np.ndarray, horizon: int) -> np.ndarray:
     return np.tile(pattern, repeats)[:horizon].astype(float)
 
 
-def _build_naive7_predictions(train_panel: pd.DataFrame, test_panel: pd.DataFrame) -> pd.DataFrame:
+def _build_naive7_predictions(
+    train_panel: pd.DataFrame,
+    test_panel: pd.DataFrame,
+) -> pd.DataFrame:
     rows: List[pd.DataFrame] = []
     for sku, tr_sku in train_panel.groupby("product_family_name"):
         te_sku = test_panel[test_panel["product_family_name"] == sku].sort_values("date")
@@ -188,7 +241,11 @@ def _recursive_zinb_forecast(
     )
     sku_list = sorted(cluster_map.keys())
     history_sales: Dict[str, List[float]] = {
-        sku: train_panel.loc[train_panel["product_family_name"] == sku, "total_sales"].astype(float).tolist()
+        sku: (
+            train_panel.loc[train_panel["product_family_name"] == sku, "total_sales"]
+            .astype(float)
+            .tolist()
+        )
         for sku in sku_list
     }
     history_occ: Dict[str, List[int]] = {
@@ -216,7 +273,11 @@ def _recursive_zinb_forecast(
         feat_df[output_col] = pred
         rows.append(feat_df[["date", "product_family_name", "cluster", p_col, output_col]])
 
-        for sku, pred_value, p_value in zip(feat_df["product_family_name"], pred.tolist(), p_nonzero.tolist()):
+        for sku, pred_value, p_value in zip(
+            feat_df["product_family_name"],
+            pred.tolist(),
+            p_nonzero.tolist(),
+        ):
             history_sales[sku].append(float(pred_value))
             history_occ[sku].append(int(p_value >= nonzero_threshold and pred_value > 0))
 
@@ -250,7 +311,11 @@ def _split_train_holdout_panel(
     return core_panel, holdout_panel
 
 
-def _positive_underprediction_pct(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1.0) -> float:
+def _positive_underprediction_pct(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    eps: float = 1.0,
+) -> float:
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
     mask = y_true > 0
@@ -279,9 +344,14 @@ def _search_zinb_params(
     holdout_days: int = SEARCH_HOLDOUT_DAYS_DEFAULT,
     tuning_objective: str = DEFAULT_TUNING_OBJECTIVE,
 ) -> Tuple[Dict[str, Any], pd.DataFrame]:
-    core_panel, holdout_panel = _split_train_holdout_panel(train_panel, holdout_days=holdout_days)
+    core_panel, holdout_panel = _split_train_holdout_panel(
+        train_panel,
+        holdout_days=holdout_days,
+    )
     core_feat = _build_train_features(core_panel)
-    actual_holdout_days = int(len(sorted(pd.to_datetime(holdout_panel["date"].dropna().unique()))))
+    actual_holdout_days = int(
+        len(sorted(pd.to_datetime(holdout_panel["date"].dropna().unique())))
+    )
 
     threshold_grid = [0.40, 0.50]
     clip_q_grid = [DEFAULT_ZINB_CLIP_Q, 0.99]
@@ -436,7 +506,17 @@ def _periodize_test(df: pd.DataFrame, n_periods: int = 4) -> pd.DataFrame:
 def _build_error_quantiles(ape_box_df: pd.DataFrame) -> pd.DataFrame:
     if ape_box_df.empty:
         return pd.DataFrame(
-            columns=["method", "period", "count", "q50", "q75", "q90", "q95", "q99", "mean"]
+            columns=[
+                "method",
+                "period",
+                "count",
+                "q50",
+                "q75",
+                "q90",
+                "q95",
+                "q99",
+                "mean",
+            ]
         )
 
     rows: List[Dict[str, Any]] = []
@@ -666,11 +746,23 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cluster-id", type=int, default=1)
     parser.add_argument("--n-periods", type=int, default=4)
     parser.add_argument("--eps-mape", type=float, default=1.0)
-    parser.add_argument("--metric-name", default="bounded_mape", choices=["bounded_mape", "safe_mape"])
+    parser.add_argument(
+        "--metric-name",
+        default="bounded_mape",
+        choices=["bounded_mape", "safe_mape"],
+    )
     parser.add_argument("--zinb-threshold", type=float, default=None)
     parser.add_argument("--tune", action="store_true")
-    parser.add_argument("--tuning-objective", default=DEFAULT_TUNING_OBJECTIVE, choices=["wmape", "mape"])
-    parser.add_argument("--search-holdout-days", type=int, default=SEARCH_HOLDOUT_DAYS_DEFAULT)
+    parser.add_argument(
+        "--tuning-objective",
+        default=DEFAULT_TUNING_OBJECTIVE,
+        choices=["wmape", "mape"],
+    )
+    parser.add_argument(
+        "--search-holdout-days",
+        type=int,
+        default=SEARCH_HOLDOUT_DAYS_DEFAULT,
+    )
     parser.add_argument("--save-predictions", action="store_true")
     parser.add_argument("--prediction-output-path", default=PREDICTION_OUTPUT_DEFAULT)
     return parser
@@ -700,7 +792,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 "metrics_overall_head": art.metrics_overall.head(10).to_dict(orient="records"),
                 "metrics_by_period_head": art.metrics_by_period.head(10).to_dict(orient="records"),
                 "tuning_best_config": art.tuning_best_config,
-                "tuning_trials_head": None if art.tuning_trials is None else art.tuning_trials.head(10).to_dict(orient="records"),
+                "tuning_trials_head": (
+                    None
+                    if art.tuning_trials is None
+                    else art.tuning_trials.head(10).to_dict(orient="records")
+                ),
                 "metadata": art.metadata,
             },
             indent=2,
