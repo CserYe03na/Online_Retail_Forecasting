@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Any, Dict, Optional
 
 import matplotlib.pyplot as plt
@@ -106,10 +107,48 @@ def _wmape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1.0) -> float:
     return float(100.0 * num / den)
 
 
-def _save_fig(fig: plt.Figure, file_stem: str, save_svg: bool, out_dir: Path) -> None:
+def _non_zero_mape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1e-12) -> float:
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0)
+    if int(np.sum(mask)) == 0:
+        return float("nan")
+    denom = np.maximum(np.abs(y_true[mask]), eps)
+    return float(np.mean(np.abs(y_true[mask] - y_pred[mask]) / denom) * 100.0)
+
+
+def _cluster_prefix_from_context(
+    out_dir: Path,
+    cluster_label: Optional[str] = None,
+) -> Optional[str]:
+    match = re.fullmatch(r"(c\d+)_results", out_dir.name)
+    if match:
+        return match.group(1)
+
+    if cluster_label is not None:
+        label_match = re.search(r"cluster\s*(\d+)", cluster_label, flags=re.IGNORECASE)
+        if label_match:
+            return f"c{label_match.group(1)}"
+
+    return None
+
+
+def _save_fig(
+    fig: plt.Figure,
+    file_stem: str,
+    save_svg: bool,
+    out_dir: Path,
+    cluster_label: Optional[str] = None,
+) -> None:
     if not save_svg:
         return
     out_dir.mkdir(parents=True, exist_ok=True)
+    cluster_prefix = _cluster_prefix_from_context(
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
+    if cluster_prefix is not None and not file_stem.startswith(f"{cluster_prefix}_"):
+        file_stem = f"{cluster_prefix}_{file_stem}"
     fig.savefig(out_dir / f"{file_stem}.svg", format="svg", bbox_inches="tight")
 
 
@@ -182,7 +221,13 @@ def plot_cluster_aggregate_lines(
     ax.set_ylabel(target_label)
     ax.legend()
     fig.tight_layout()
-    _save_fig(fig, "01_cluster_aggregate_lines", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "01_cluster_aggregate_lines",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
 
 
@@ -243,7 +288,13 @@ def plot_residual_time_series(
     ax.set_ylabel("Residual")
     ax.legend(ncol=2, fontsize=8)
     fig.tight_layout()
-    _save_fig(fig, "06_residual_time_series", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "06_residual_time_series",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
     return out
 
@@ -285,7 +336,13 @@ def plot_rolling_error_trend(
     ax.set_ylabel(ylabel)
     ax.legend(title="Method")
     fig.tight_layout()
-    _save_fig(fig, "02_rolling_error_trend", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "02_rolling_error_trend",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
 
 
@@ -364,7 +421,13 @@ def plot_occurrence_confusion_by_period(
         ax.legend(loc="upper right", fontsize=8)
 
     fig.tight_layout()
-    _save_fig(fig, "03_occurrence_confusion_by_period", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "03_occurrence_confusion_by_period",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
     return conf_df
 
@@ -439,7 +502,13 @@ def plot_interval_width_over_time(
     ax.set_ylabel("Interval width")
     ax.legend(ncol=2, fontsize=8)
     fig.tight_layout()
-    _save_fig(fig, "06b_interval_width_over_time", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "06b_interval_width_over_time",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
     return out
 
@@ -477,7 +546,13 @@ def plot_positive_day_scatter(
         ax.set_ylim(0, lim)
 
     fig.tight_layout()
-    _save_fig(fig, "04_positive_day_scatter", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "04_positive_day_scatter",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
 
 
@@ -526,7 +601,13 @@ def plot_days_since_last_sale_shift(
     ax.set_ylabel("Density")
     ax.legend()
     fig.tight_layout()
-    _save_fig(fig, "05_days_since_last_sale_shift", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "05_days_since_last_sale_shift",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
 
     stats = {
@@ -588,7 +669,13 @@ def plot_occurrence_calibration(
     axes[1].set_xticklabels([str(i + 1) for i in range(len(cal))])
 
     fig.tight_layout()
-    _save_fig(fig, "06_occurrence_calibration", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "06_occurrence_calibration",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
     return cal
 
@@ -646,7 +733,13 @@ def plot_error_decomposition_by_state(
     if axes[1].legend_ is not None:
         axes[1].legend_.remove()
     fig.tight_layout()
-    _save_fig(fig, "07_error_decomposition_by_state", save_svg=save_svg, out_dir=out_dir)
+    _save_fig(
+        fig,
+        "07_error_decomposition_by_state",
+        save_svg=save_svg,
+        out_dir=out_dir,
+        cluster_label=cluster_label,
+    )
     plt.show()
     return out
 
@@ -671,6 +764,7 @@ def build_cluster_metric_tables(
                 "method_display": method_names.get(method_name, method_name) if method_names is not None else method_name,
                 "wmape_pct": _wmape(y, pred, eps=eps),
                 "epsilon_mape_pct": float(np.mean(ape_eps)),
+                "non_zero_mape_pct": _non_zero_mape(y, pred),
                 "cap_mape_0_100": float(np.mean(np.clip(ape_eps, 0.0, 100.0))),
                 "tail_ape_p90": float(np.quantile(ape_eps, 0.90)),
                 "tail_ape_p95": float(np.quantile(ape_eps, 0.95)),

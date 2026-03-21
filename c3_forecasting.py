@@ -460,6 +460,16 @@ def _wmape(y: np.ndarray, yhat: np.ndarray, eps: float) -> float:
     return float(100.0 * np.sum(np.abs(y - yhat)) / max(float(np.sum(np.abs(y))), eps))
 
 
+def _non_zero_mape(y: np.ndarray, yhat: np.ndarray, eps: float = 1e-12) -> float:
+    y = np.asarray(y, dtype=float)
+    yhat = np.asarray(yhat, dtype=float)
+    mask = np.isfinite(y) & np.isfinite(yhat) & (y > 0)
+    if int(np.sum(mask)) == 0:
+        return float("nan")
+    denom = np.maximum(np.abs(y[mask]), eps)
+    return float(np.mean(np.abs(y[mask] - yhat[mask]) / denom) * 100.0)
+
+
 def _score(y: np.ndarray, yhat: np.ndarray, eps: float, name: str) -> float:
     if name.lower() == "wmape":
         return _wmape(y, yhat, eps)
@@ -552,6 +562,8 @@ def _build_metrics(
                 "method": method_name,
                 "MAPE_0_100": float(np.mean(np.clip(ape, 0.0, 100.0))),
                 "WMAPE_0_100": _wmape(y, yhat, eps),
+                "EPSILON_MAPE_PCT": float(np.mean(ape)),
+                "NON_ZERO_MAPE_PCT": _non_zero_mape(y, yhat),
                 "MAE": float(np.mean(np.abs(y - yhat))),
                 "pred_nonzero_rate": float(np.mean(yhat > 0)),
                 "actual_nonzero_rate": float(np.mean(y > 0)),
@@ -575,6 +587,8 @@ def _build_metrics(
                     "period": period,
                     "MAPE_0_100": float(np.mean(np.clip(ape, 0.0, 100.0))),
                     "WMAPE_0_100": _wmape(y, yhat, eps),
+                    "EPSILON_MAPE_PCT": float(np.mean(ape)),
+                    "NON_ZERO_MAPE_PCT": _non_zero_mape(y, yhat),
                     "MAE": float(np.mean(np.abs(y - yhat))),
                 }
             )

@@ -63,6 +63,20 @@ def pointwise_safe_ape(
     return np.abs(yt - yp) / denom * 100.0
 
 
+def non_zero_mape(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    eps: float = 1e-12,
+) -> float:
+    yt = np.asarray(y_true, dtype=float).reshape(-1)
+    yp = np.asarray(y_pred, dtype=float).reshape(-1)
+    valid = np.isfinite(yt) & np.isfinite(yp) & (yt > 0)
+    if int(np.sum(valid)) == 0:
+        return float("nan")
+    denom = np.maximum(np.abs(yt[valid]), float(eps))
+    return float(np.mean(np.abs(yt[valid] - yp[valid]) / denom) * 100.0)
+
+
 def compute_metric_bundle(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -97,6 +111,8 @@ def compute_metric_bundle(
     bundle = {
         "MAPE_0_100": mape_0_100,
         "WMAPE_0_100": wmape_0_100,
+        "EPSILON_MAPE_PCT": float(np.mean(ape_eps)),
+        "NON_ZERO_MAPE_PCT": non_zero_mape(yt, yp),
         "pred_nonzero_rate": float(np.mean(yp > 0)),
         "actual_nonzero_rate": float(np.mean(sale > 0)),
     }
