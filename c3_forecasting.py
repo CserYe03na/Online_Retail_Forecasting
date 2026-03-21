@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+"""C3 forecasting pipeline with naive7 baseline vs two-stage HGB model.
+
+This module exposes the final pairwise Cluster 3 comparison requested by the
+project while preserving the leak-safe recursive forecasting workflow.
+"""
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -98,7 +104,9 @@ def _load_cluster(path: str | Path, cluster_id: int) -> pd.DataFrame:
 
     for col in ["date", "sku_id", "cluster", "y"]:
         if col not in df.columns:
-            raise ValueError(f"Missing required column '{col}'. Available columns: {df.columns.tolist()}")
+            raise ValueError(
+                f"Missing required column '{col}'. Available columns: {df.columns.tolist()}"
+            )
 
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df["sku_id"] = df["sku_id"].astype("string").str.strip()
@@ -136,8 +144,14 @@ def _build_zero_filled_panel(
     train_dates = pd.date_range(train_raw["date"].min(), train_raw["date"].max(), freq="D")
     test_dates = pd.date_range(test_raw["date"].min(), test_raw["date"].max(), freq="D")
 
-    train_grid = pd.MultiIndex.from_product([sku_list, train_dates], names=["sku_id", "date"]).to_frame(index=False)
-    test_grid = pd.MultiIndex.from_product([sku_list, test_dates], names=["sku_id", "date"]).to_frame(index=False)
+    train_grid = pd.MultiIndex.from_product(
+        [sku_list, train_dates],
+        names=["sku_id", "date"],
+    ).to_frame(index=False)
+    test_grid = pd.MultiIndex.from_product(
+        [sku_list, test_dates],
+        names=["sku_id", "date"],
+    ).to_frame(index=False)
 
     train_grid = train_grid.merge(sku_map, on="sku_id", how="left")
     test_grid = test_grid.merge(sku_map, on="sku_id", how="left")
@@ -181,8 +195,12 @@ def _sku_lag_features(grp: pd.DataFrame) -> pd.DataFrame:
         grp[f"lag_{lag}"] = grp["y"].shift(lag).fillna(0.0).clip(lower=0.0)
 
     for window in (7, 14):
-        grp[f"rolling_mean_{window}"] = y_s1.rolling(window, min_periods=1).mean().fillna(0.0)
-        grp[f"rolling_nonzero_{window}"] = (y_s1 > 0).rolling(window, min_periods=1).mean().fillna(0.0)
+        grp[f"rolling_mean_{window}"] = (
+            y_s1.rolling(window, min_periods=1).mean().fillna(0.0)
+        )
+        grp[f"rolling_nonzero_{window}"] = (
+            (y_s1 > 0).rolling(window, min_periods=1).mean().fillna(0.0)
+        )
 
     grp["log1p_rolling_mean_7"] = np.log1p(grp["rolling_mean_7"])
     grp["days_since_last_sale"] = _dsls_vectorized((y_s1.values > 0).astype(int))
@@ -392,7 +410,11 @@ def _recursive_forecast(
         feat_df["p_sale"] = p_sale
         rows.append(feat_df[["date", "sku_id", "cluster", "pred_two_stage", "p_sale"]])
 
-        for sku, pred_value, p_value in zip(feat_df["sku_id"], pred.tolist(), p_sale.tolist()):
+        for sku, pred_value, p_value in zip(
+            feat_df["sku_id"],
+            pred.tolist(),
+            p_sale.tolist(),
+        ):
             history_sales[sku].append(float(pred_value))
             history_occ[sku].append(int((p_value >= occurrence_threshold) and (pred_value > 0)))
 
@@ -582,7 +604,13 @@ def _build_metrics(
                 continue
             ape = _ape_eps(sub["y"].to_numpy(dtype=np.float64), sub[col].to_numpy(dtype=np.float64), eps)
             for value in ape:
-                box_rows.append({"method": method_name, "period": period, "APE_EPS_PCT": float(value)})
+                box_rows.append(
+                    {
+                        "method": method_name,
+                        "period": period,
+                        "APE_EPS_PCT": float(value),
+                    }
+                )
     ape_box_df = pd.DataFrame(box_rows)
 
     return metrics_overall, metrics_by_period, error_quantiles, ape_box_df
@@ -753,7 +781,9 @@ def run_c3_forecasting_2(
     )
     pred_df = pred_df.merge(baseline_df, on=["date", "sku_id", "cluster"], how="left")
     pred_df["pred_naive7"] = pred_df["pred_naive7"].fillna(0.0)
-    pred_df = pred_df[["date", "sku_id", "cluster", "y", "pred_naive7", "pred_two_stage", "p_sale"]].copy()
+    pred_df = pred_df[
+        ["date", "sku_id", "cluster", "y", "pred_naive7", "pred_two_stage", "p_sale"]
+    ].copy()
 
     metrics_overall, metrics_by_period, error_quantiles, ape_box_df = _build_metrics(
         pred_df=pred_df,
@@ -795,7 +825,10 @@ def run_c3_forecasting_2(
         "eps_mape": float(eps_mape),
         "baseline_col": "pred_naive7",
         "model_col": "pred_two_stage",
-        "split_policy": "strict parquet train/test for final reporting; recursive test forecasting with no test leakage",
+        "split_policy": (
+            "strict parquet train/test for final reporting; recursive test forecasting "
+            "with no test leakage"
+        ),
     }
 
     return C3Artifact(
