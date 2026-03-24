@@ -161,6 +161,8 @@ dependencies:
   - llvm-openmp=21.1.8=h4fa8253_0
   - llvmlite=0.46.0=py311h4f568be_0
   - lz4-c=1.10.0=h2466b09_1
+  - lightgbm
+  - watchdog-6.0.0
   - markupsafe=3.0.3=py311h3f79411_0
   - matplotlib=3.10.8=py311h1ea47a8_0
   - matplotlib-base=3.10.8=py311h1675fdf_0
@@ -198,6 +200,7 @@ dependencies:
   - pthread-stubs=0.4=h0e40799_1002
   - pure_eval=0.2.3=pyhd8ed1ab_1
   - pyarrow-core=23.0.1=py311hee28c0d_0_cpu
+  - streamlit
   - pycparser=2.22=pyh29332c3_1
   - pydantic=2.12.5=pyhcf101f3_1
   - pydantic-core=2.41.5=py311hf51aa87_1
@@ -280,4 +283,4 @@ dependencies:
   - pip:
       - pyarrow==23.0.1
       - scipy==1.17.1
-prefix: C:\Softwares\miniconda3\envs\forecasting-retail
+      
