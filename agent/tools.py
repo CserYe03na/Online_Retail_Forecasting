@@ -47,6 +47,14 @@ def clear_caches() -> None:
 
 
 def resolve_product(query: str, registry_path: str | Path = REGISTRY_PATH) -> Dict[str, Any]:
+    return _resolve_product(query=query, registry_path=registry_path, allow_fuzzy=True)
+
+
+def _resolve_product(
+    query: str,
+    registry_path: str | Path = REGISTRY_PATH,
+    allow_fuzzy: bool = True,
+) -> Dict[str, Any]:
     registry_df = load_registry(registry_path)
     query_norm = normalize_text(query)
 
@@ -73,6 +81,14 @@ def resolve_product(query: str, registry_path: str | Path = REGISTRY_PATH) -> Di
     if len(alias_exact) > 1:
         return {"status": "ambiguous", "query": query, "matches": _rows_to_payload(alias_exact)}
 
+    if not allow_fuzzy:
+        return {
+            "status": "not_found",
+            "query": query,
+            "matches": [],
+            "nearest_matches": [],
+        }
+
     ranked = rank_registry_matches(query=query, registry_df=registry_df, limit=5)
     if ranked.empty:
         return {
@@ -97,6 +113,10 @@ def resolve_product(query: str, registry_path: str | Path = REGISTRY_PATH) -> Di
         "query": query,
         "matches": _rows_to_payload(ranked),
     }
+
+
+def resolve_product_strict(query: str, registry_path: str | Path = REGISTRY_PATH) -> Dict[str, Any]:
+    return _resolve_product(query=query, registry_path=registry_path, allow_fuzzy=False)
 
 
 def get_product_metadata(product_key: str, registry_path: str | Path = REGISTRY_PATH) -> Dict[str, Any]:

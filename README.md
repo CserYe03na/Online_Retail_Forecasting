@@ -19,6 +19,23 @@ conda env update -f environment.yml --prune
 conda activate forecasting-retail
 ```
 
+Create a local `.env` file from `.env.example` and fill in your own OpenAI API key:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and set:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+ENABLE_OPENAI_QUERY_PARSER=1
+OPENAI_QUERY_PARSER_MODEL=gpt-4o-mini
+OPENAI_SUMMARY_MODEL=gpt-4o-mini
+```
+
+`OPENAI_API_KEY` must be your own key. The `.env` file is local and should not be committed.
+
 ## Start The Agent
 
 1. Build the validated forecast artifacts (We have already built it, you don't need to run this):

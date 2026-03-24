@@ -1,0 +1,457 @@
+product_family_name,product_id,train_sales_amount,reason_type,reason_message
+*Boombox Ipod Classic,21120,33.96,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+*USB Office Glitter Lamp,20739,8.65,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+*USB Office Mirror Ball,20954,25.590000000000003,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+11 PC CERAMIC TEA SET POLKADOT,22139,14.850000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+15 PINK FLUFFY CHICKS IN BOX,84465,96.51,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+6 HOOK JEWEL STAND LILAC DRESS,84572,8.49,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+6 RABBIT CHAIN EASTER,84447,52.87,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+85123A,21733,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+?,20956,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+?????,85142,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"ACRYLIC BEAD GARLAND,PINK",35823P,5.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ADJUSTMENT,17109D,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+AMAZON,22734,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+AMAZON FEE,AMAZONFEE,-146463.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+AMBER BERTIE MOBILE PHONE CHARM,90126C,15.239999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+AMENDMENT,21523,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ANTIQUE SILVER BAUBLE LAMP,23085,83.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+AQUA BERTIE GLASS BEAD BAG CHARM,90125B,50.24,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ARMY CAMO BOOKCOVER TAPE,10124G,13.02,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ARMY CAMO WRAPPING TAPE,10123G,99.32,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+AS,21214,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"ASS RETROSPOOF MUGS,SPORTS",37399,75.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASS WINDPROOF MARIJUANA LIGHTERS,79140,6.3,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED COLOUR JUMBO PEN,10138,29.32,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED DESIGN FLOWER MUGS,37409,6.8,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED DESIGN GEISHA GIRL MUGS,37408,6.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED FRAGRANCE BATH CONFETTI,18010,30.16,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED FRUIT STRAWS,30086C,1.7,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED SANTA CHRISTMAS DECORATION,35071,40.94,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSORTED SHAPED STENCIL FOR HENNA,17061,2.08,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ASSTD RASTA KEY-CHAINS,17174,1.68,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Adjust bad debt,B,-136552.02000000002,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Adjustment by Peter on 24/05/2010 1,ADJUST,-731.0500000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Amazon sold as set,84937,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Amazon sold sets,85175,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BAKING MOULD CHOCOLATE CUP CAKES,22937,61.199999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BAKING MOULD CUPCAKE CHOCOLATE,22937,30.599999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BAROQUEBUTTERFLYEARRINGS,90025C,94.33,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BENDY COLOUR PENCILS,10109,1.68,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BIRDCAGE DECORATION MAGIC GARDEN,22252,53.55,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BIRTHDAY BANNER TAPE,22953,30.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLACK GLASS TV DOUBLE P/FRAME 15X10,84427B,72.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLACK ORANGE SQUEEZER,71406C,37.84,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"BLACK RND BULLET""KEEP CLEAN"" BIN",71434B,5.1,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLANKCARD,84206A,9.31,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLING KEY RING STAND,85225,17.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLINGKEYRING,90214V,52.4,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE BUTTERFLY ON SPRING,44241C,59.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE CHECK BAG W HANDLE 34X20CM,62043B,74.32999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE HOLE PUNCH,16248B,90.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE KNITTED KID'S RUCKSACK,84529B,62.35,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE NETTING STORAGE HANGER,78034B,21.45,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE ORGANDY ROUND LAMPSHADE W BEA,40005B,20.4,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE TILED SET OF 3 DRAWERS,20791,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BLUE TRAVEL FIRST AID KIT,84874B,89.02,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BOXED GLASS ASHTRAY,DCGS0003,32.589999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BROKEN,21320,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BROKENZIPS,22785,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BROWN ANTIQUE CUBE CANDLE,72606A,94.92,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BROWN DOG CANNISTER W BONE,84575B,11.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BURG FLOCK GOLD CUP/CANDLE,72771B,61.94,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+BUTTERFLY HAIR BAND,90174,43.29,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Bank Charges,BANK CHARGES,-32883.79,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CAMOUFLAGE BACKPACK ON WHEELS,78056,12.849999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CAMOUFLAGUE DOG LEAD,DCGS0075,12.72,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CANDLERING,35537,14.39,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CANNABIS LEAF BEAD CURTAIN,44228,30.599999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CANNISTER,84575A,92.85,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CANVASSCREEN,84731,3.3,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CARFRESHENER,DCGS0062,5.08,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CARNATION SQUARE HANDY TIN,84845C,48.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CAROUSEL CHILDRENS APRON,47591A,38.06999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CAROUSEL PLACEMATS,84509E,23.060000000000002,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CAT CAMOUFLAGUE COLLAR,DCGS0072,20.68,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"CAT FOOD CONTAINER , VINTAGE",22845,63.49999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CAT W SUNGLASSES BLANK CARD,84206B,0.76,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CERAMIC CAKE TEAPOT WITH CHERRY,37451,-3.55,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CHECK,84968E,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CHECKED,21018,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CHILDRENS TOY COOKING UTENSIL SET,23348,41.3,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CHROME EURO HOOK 20cm,49031B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CIRCUS PARADE LUNCHBOX,22631,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CLASSIC DIAMANTE EARRINGS JET,90177A,20.59,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CLEAR STATIONERY BOX SET,16020C,69.69999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+COGNAC AUX OEUFS METAL 1 HOOK,82545A,38.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+COLOURFUL FLOWER FRUIT BOWL,35265,76.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+COUNTED,20738,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CRACKEDGLAZEEARRINGS,90054,73.82,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CREAM SWEETHEART DOUBLE SHELF,85069,-50.849999999999994,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CREATURESCREEN,84732B,14.849999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CROCHET DOG KEYRING,84551,42.89999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CROCHET POODLE KEYRING,84546,4.949999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CROCHET ROSE DES CLOTHES HANGER,84593,76.7,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CROCHETBEARKEYRING,84548,82.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CRUSHED,21431,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CRYSTAL CHANDELIER T-LIGHT HOLDER,23056,18.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CRYSTALDROPEARRINGS,90011A,67.96,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+CRYSTALPHOTOFRAME,85023A,55.199999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Carton qnty was 216 not 144 as stat,22734,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DADDY MOUSE RED GINGHAM BOW TIE,21838,5.45,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DAMAGED,22423,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DAMAGES,35978,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"DAMAGES,LOSTBITSETC",84782A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DAMAGES?,21007,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DECORATION SITTING BUNNY,22268,6.359999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DECORATION WOBBLY CHICKEN,22287,69.24,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DECOUPAGEBOXSET,85184C,8.74,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DISCOLOURED,72739B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DISPLAY,84763,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DISTRESSED CANDLE STICK WHITE,21450,17.849999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"DOG FOOD CONTAINER , VINTAGE",22844,85.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DOILEY STORAGE TIN,23236,8.67,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DONATEDITEM,22502,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DOTCOMSALES,46000M,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DOUBLE CERAMIC PARLOUR HOOK,23075,33.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+DUCK SOCK PUPPET,85185E,6.700000000000002,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Dad's Cab Electronic Meter,21595,93.89,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Damp and rusty,47505,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Discount,D,-9467.91,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Dotcom multiple,85217,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Dotcom multiples,84879,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Dotcom set,85172,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Dotcom sold as set,84937,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Dotcom sold in 6's,22127,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+EBAYSALES,84016,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ELEPHANT CLIP W SUCTION CUP,62074B,15.120000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+EMBOSSED FLOWER TRELLIS PHOTO FRAME,20812,12.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENCHANTED GARDEN WROUGHT IRON TABLE,84757,74.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENGLISH ROSE DESIGN KITCHEN APRON,47567,-5.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENGLISH ROSE DESIGN SHOPPING BAG,47569,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENGLISH ROSE PHOTO FRAME,84705A,69.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENGLISH ROSE SET/3 GARDEN TOOLS,47504J,43.4,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENGLISH ROSE SQUARE CAKE TINS,79070b,11.26,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ENGLISH ROSE TEA FOR ONE GIFT BOX,37484,6.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Ebay sales by the box.,84016,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Electronic Talking Breath-A-Loser,21919,30.47,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"F.FAIRY S/3 SML CANDLE, LAVENDER",72751B,5.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FAIRY CAKES GIFT BAG,84537B,49.14,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FAIRY CAKES WALL THERMOMETER,84925C,71.39999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FAIRY DESIGN MUGS,37326,3.36,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FAIRYCANDLEINGLASS,72752B,17.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FAIRYCANDLESMALL,72751C,11.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FAN BLACK FRAME,15030,33.64,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FELTCRAFT HAIRBANDS PINK + WHITE,22565,61.199999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FILIGREE DIAMANTE CHAIN,90020,51.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FILIGREE DIAMANTE EARRINGS,90023,97.93,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FLOWER DES BLUE HANDBAG/ORANG HANDL,16151A,11.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FLOWERCLOCK,81950B,89.7,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FLOWERFAIRYMUG+COASTER,37477B,67.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FOLDING CAMPING SCISSOR W/KNIF & S,16010,5.279999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FOLDING SHIRT TIDY,45014,4.65,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FOLKART ZINC CLIP ON ANGEL WINGS,35963,39.52,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"FOOD COVER WITH BEADS , SET 2 SIZES",23299,11.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FOUND,22864,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FOUR PICTURE WHITE GLASS FRAME,84424A,86.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FRENCH STYLE WIRE DOOR CABINET,21767,29.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FRENCHSTYLESTORAGEJAR,23186,45.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FRIDGEMAGNETSSET,21699,-20.28,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FROSTED GLASS WITH SILVER SURROUND,84567,14.85,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FUNKY FLOWER COFFEE POT,37438,7.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FUNKY GIRLZ MAGNETIC TO DO LIST,16215,5.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+FUSCHIA VOILE POINTY SHOE DEC,47348A,24.18,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GIVENAWAY,20852,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GLASS BEAD HOOP EARRINGS MONTANA,90027B,35.38,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GLASS BELL JAR LARGE,22777,34.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GLASS BELL JAR SMALL,22778,31.6,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GLASS WINE GLASS DECORATIONS,79413,37.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GLOW IN DARK DOLPHINS,84199,80.13,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GOLD JEWELERY BOX,21343,58.10000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GOLD PRINT PAPER BAG,35271S,89.58,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GONE,35821B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GREEN CHENILLE SHAGGY C/COVER,46138D,1.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GREEN ENAMEL FLOWER HAIR TIE,90202C,62.22,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GREEN METAL BOX TOP SECRET,23081,99.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+GROOVY CACTUS INFLATABLE,10080,11.899999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"GUMBALL COATHOOK., BLACK & WHITE",22719,25.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Glow In The Dark Shot Glasses,21119,41.01,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HANDYTIN,84845D,48.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HANGING HEART BASKET,85195,88.30000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HANGING SPRING FLOWER HEART SMALL,85192S,1.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HANGINGEASTERHEN,84745B,66.78,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HANGINGJEWEL,35819B,87.47,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HAPPY ANNIVERSARY CANDLE LETTERS,72140F,18.06,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HARDMAN MUG 3 ASSORTED,37468,21.09,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HAYNES CAMPER SHOULDER BAG,DCGS0004,67.94,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEART MEASURING SPOONS SMALL,22196,10.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEART SHAPED HOLLY WREATH,23129,58.10000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEART WREATH DECORATION WITH BELL,23212,39.96,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEARTS PENCIL/RUBBER+5 MINI PENCILS,16256C,65.10000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEN & 2 CHICKS IN BASKET,22657,55.24999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEN PARTY BANNER TAPE,22954,15.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HEXAGONAL CRYSTAL PERFUME BOTTLE,84814A,1.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+HIGH SCHOOL MUSICAL 3 TOP TRUMPS,21858,10.23,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+IVORY CAFE HANGING LAMP,23104,62.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+IVORY PANTRY HANGING LAMP,23104,25.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Incorrectly entered. should be 2279,22784,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+JACOBS LADDER SMALL,35015,99.52000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+JAZZ HEARTS SPIRAL NOTEPAD,20994,39.949999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+JEWELSTAND,35650,29.700000000000003,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+KASHMIR FOLKART HEART DISHES,84942,5.07,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+KEY-RING CORKSCREW,DCGS0037,12.72,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+KID'S CHALKBOARD/EASEL,SP1002,14.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+KISSING REINDEER TABLE RUNNER,85077,5.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+KNICKKNACKTINSSET4,23239,99.60000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+KNITTED RABBIT DOLL,84539,85.8,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+LARGE FIBRE OPTIC CHRISTMAS TREE,84340,65.76,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+LARGE GLASS HEART TRINKET POT,21315,-17.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+LARGE HANGING GLASS+ZINC LANTERN,84760L,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+LARGE SILVER BALUSTRADE CANDLESTICK,21346,-5.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+LARGE ZINC/GLASS CANDLEHOLDER,72812,65.23,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+LOST,35956,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+M/COLOUR POM-POM CURTAIN,44265,34.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MAILOUT,22501,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MANUAL,M,-24677.27,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MEDINA STAMPED METAL TRAY,21685,29.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MEMORYBOX,84868B,34.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"MERCHANT CHANDLER CREDIT ERROR, STO",21830,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+METAL BASE FOR CANDLES,71215,68.52,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+METAL HERB GERDEN CONTAINER,23091,56.25,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+METALIC LEAVES BAG CHARMS,90119,57.4,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MIA,20681,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MIDNIGHT BLUE DROP CRYSTAL NECKLACE,90012A,50.78,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MINITURE ANTIQUE ROSE HOOK IVORY,23148,40.8,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MISCELLANEOUS,21181,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MISO PRETTY GUM,DCGS0058,34.82,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MISSING,17027A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MULTICOLOUR EASTER RABBIT,35910A,79.94999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+MULTICOLOUR GLASS PLATE,79534,63.800000000000004,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Mixed with blue,21915,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+NAVY CUDDLES DOG HOODIE,DCGS0066N,17.3,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+NEW BAROQUE BLACK BOXES,84617,51.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+NEW BAROQUE WALL MIRROR,84648,12.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+NEW ENGLAND EGG WARMER,47598,82.52000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+NEW ENGLAND MUG W GIFT BOX,37509,76.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+NEW ENGLAND PLACEMATS,84509F,75.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Not rcvd in 10/11/2010 delivery,22796,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ORANGE FELT VASE + FLOWERS,84743C,12.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ORIGAMI SANDLEWOOD INCENSE IN TUBE,17013F,9.899999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+OWLS CHARLOTTE BAG,20721,0.85,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PACK/12 DECOUPAGE CARD,84247H,76.68,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PACK/12 RUSSIAN DOLL CARDS,84247J,12.780000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PADDED HOLLY CHRISTMAS DECORATION,85081,47.43,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PADS TO MATCH ALL CUSHIONS,PADS,-36.586000000000006,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PAINTED SEA SHELL METAL WINDCHIME,75172,39.480000000000004,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PAIR OF PINK FLOWER CLUSTER SLIDE,90208,45.31,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PAIR PINK/BLACK COATHANGERS,35644,48.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PALE PINK/AMETHYST STONE NECKLACE,90136,40.47,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PASTA ENAMEL/BRASS CONTAINER,35233,45.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PENDANTNECKLACE,90141A,99.46000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PHOTOFRAMELARGE,85023C,56.099999999999994,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK BALLET OPENING CUBE BOX,16192,12.899999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK BEADED CONE CHRISTMAS,35051B,5.88,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK CHRISTMAS FLOCK DROPLET,35610A,97.94,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK CROCHET CAT WITH SCARF,84582,63.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK EASTER HENS+FLOWER,84746,37.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK EAU DE COLOGNE BOTTLE,84753A,92.16999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK GLASS COCKTAIL LAMP,84255A,4.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK MINI STATIONERY SET W CASE,16245A,13.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK PAISLEY PHOTO ALBUM,84864A,67.71000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK PORCELAIN B'FLY OIL BURNER,18098A,5.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK RABBIT SITTING EASTER,84450A,14.940000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"PINK ROSES/GINGHAM PATCH RABBIT 8""",84586L,44.25000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK TALL PORCELAIN T-LIGHT HOLDER,18097A,43.349999999999994,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK VINTAGE VICTORIAN CHOKER,90066A,33.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK VINTAGE VICTORIAN EARRINGS,90067A,64.84,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK/WHITE GLASS DEMI CHOKER,90078,67.64,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PINK/YELLOW RABBIT SAT EASTER,84450B,61.92,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PIZZA DISH SLICE,22347,45.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PLAYINGCARDS,DCGS0041,5.06,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+POLKADOT PENS,22740,40.8,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+POPART WOODEN PENCILS ASST,16045,65.44,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PORCELAIN CHERUB BELL LARGE,20953,47.849999999999994,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PORCELAIN CHERUB BELL SMALL,20952,24.840000000000003,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PORCELAIN HANGING BELL LARGE,20958,70.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+POSSIBLE DAMAGES OR LOST?,21622,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+POSTAGE,POST,-730.5699999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PURPLE ORCHID FLOWER LIGHTS,79340P,-15.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PURPLE TINT ACRYLIC FLOWER VASE,79172D,20.4,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+PURPLE/COPPER HANGING LAMPSHADE,44092C,10.2,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RABBITEASTER,35909B,88.72,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RASTA IN BATH W SPLIFF ASHTRAY,35443,8.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RED PEONY DES C/COVER,84984B,32.550000000000004,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RED PEONY PHOTO FRAME,84705F,46.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RED PEONY TABLE CLOCK,84706F,80.55,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RED SPOTTY BEAKER,21394,60.449999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"RETRO PILL BOX , REVOLUTIONARY",79063D,22.220000000000002,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"RETRO PILL BOX KEY CHAIN,THE KING",79063C,25.6,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"RETRO TIN ASHTRAY,REVOLUTIONARY",79062D,7.800000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RHOMBUS CRYSTAL PERFUME BOTTLE,84814B,13.65,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ROBOT PENCIL SHARPNER,10002R,20.57,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ROSES ON BLUE TEACUP CANDLE,72045D,66.89,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ROUND FOOD CONTAINER S/5 RETROSPOT,22329,39.599999999999994,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+RUBY GLASS CLUSTER EARRINGS,90071,95.59,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"RUBY GLASS NECKLACE 42""",90068,15.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Rust fixed,22236,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Rusty,22236,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Rusty connections,22236,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/16 BLACK SHINY/MAT BAUBLES,35603B,-29.400000000000006,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/2 HYACINTH BULB CANDLES,85171,2.55,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/3 POT POURI CUSHIONS BLUE COLOURS,17007B,71.4,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/3 RABBIT FLOWER/EGG/CARROT ROPE,84458,91.8,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/4 BLACK DISCO PARTITION PANEL,85115B,12.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/5 MINI ICE CREAM FRIDGE MAGNETS,85218,-4.35,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/6 CHRISTMAS TREE PLACE SETTING,35974,3.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/6 PINK EASTER DECS IN BOX,84437A,80.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+S/6 SCANDINAVIAN HEART T-LIGHT,35999,2.55,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SAMPLES,S,-4406.17,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SANDALWOOD INCENSE IN TIN,17091F,27.71,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SCOTTIE DOGS CHILDRENS OVERALL,47592B,6.300000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET 4 EASTER DECOUPAGE OVAL BOXES,85184B,38.35,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET 5 MINI DOUGHNUT FRIDGE MAGNET,21697,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 2 CERAMIC PAINTED HEARTS,23270,10.149999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 2 CHESTS CHOCOLAT AU LAIT,85157,12.72,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 3 HANGING OWLS OLLIE BEAK,23275,62.46,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 3 RABBIT CARROTS EASTER,84455,68.61,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 3 RABBIT EGG EASTER,84456,22.95,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 4 PASTEL STACKING MUGS,37348,30.6,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 6 DOTS CHOPSTICKS,21950,71.57999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF 6 NATIVITY MAGNETS,23157,45.61,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF KITCHEN WALL STICKERS,21254,-11.8,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET OF SIX SILVER+RED FLOCK BAUBLES,35837,1.7,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET Of 6 SOLDIER SKITTLES,22619,60.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET/16 WHITE SHINY & MATT BAUBLES,35603C,48.3,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET/2 CHRISTMAS DECOUPAGE CANDLES,72817,50.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SET/4 GARDEN ROSE DINNER CANDLE,72798C,54.76,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SHOW,71477,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"SILICON CUBE 25W, BLUE",79151B,0.84,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SILICON STAR BULB BLUE,79149B,6.72,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SILVER/NAT SHELL NECKLACE W PENDANT,90152A,23.04,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SKY BLUE COLOUR GLASS GEMS IN BAG,17129C,58.83,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SMALL FOLKART CHRISTMAS TREE DEC,35955,34.620000000000005,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SPHERICAL IVORY CANDLE,72715,36.96,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SPOTS ON RED BOOKCOVER TAPE,10124A,24.36,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SPOTTED WHITE NATURAL SEED NECKLACE,90030A,41.760000000000005,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+STAR WARS TOP TRUMPS GAME,21857,10.23,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+STAR WREATH DECORATION WITH BELL,23213,24.96,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+STOCK,21701,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+STORAGETIN,23235,10.620000000000001,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+STRAWBERY SWIRL FLARE CANDLE,72083A,50.400000000000006,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+STRESSBALL,21596,67.91,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SWALLOW SMALL TUBE MATCHES,21585,1.65,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+SWEETHEART CREAM STEEL FOLDIN CHAIR,21475,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Sold as 17003?,17033,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Sold as A/B,84966C,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Sold as C,84966A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+T,72732,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TABLERUN,47341A,48.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TEATIME ROUND CAKE TINS,79065A,29.849999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TEATIMEPENCIL,16050,64.06,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+THROWNAWAY,23059,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TOADSTOOL LUNCHBOX WITH CUTLERY,21560,15.44,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TOPTRUMPSGAME,21853,25.74,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TRANSPARENT ACRYLIC TAPE DISPENSER,16254,47.08,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TRAYFORTVDINNER,22472,59.400000000000006,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TREASURETIN,23241,79.03999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+TRIOBASE,79157B,0.85,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+UNKNOWN,17129F,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+UNKNOWNITEM,22459,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+UPDATE,DCGSSBOY,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+VINTAGE BEAD FILLED PINK CUSHION,35654,59.400000000000006,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+VINTAGE BLUE VACUUM FLASK 0.5L,22003,-67.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+VINTAGE COLLAGE GREETING CARD,21511,16.799999999999997,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+VINTAGE ENAMEL & CRYSTAL NECKLACE,90079,60.1,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+VINTAGE ENGRAVED HEART,23061,45.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+VINTAGE METAL CAKE STAND CREAM,21772,12.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WATERDAMAGED,79030G,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WELCOME METAL SIGN,85151,55.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WET,51008,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WET/RUSTY,15058A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WETDAMAGED,84800L,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE ENAMEL FLOWER HAIR TIE,90202B,32.49,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE GLASS TV TRIPLE FRAME,84425A,76.6,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE ORCHID FLOWER LIGHTS,79340W,-45.3,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE ROCKING HORSE HAND PAINTED,23210,24.96,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE ROHMBIC BLOCK TABLE LAMP,79303A,5.9,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE ROSEBUD & PEARL NECKLACE,90163B,83.49,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE/BLUE RECT CERAMIC OIL BURNER,18094C,58.05,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WHITE/PINK CHICK EASTER DECORATION,35913B,84.74,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WINEBOTTLEDRESSING,47013C,77.50999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WISE MAN STAR SHAPE EGG PAN,84388,90.69,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOBBLING METAL CHICKEN EASTER,84454,75.33,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOOD XMAS TREE 9 FIG SHELVES,35596,24.65,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOODEN CHRISTMAS TREE 3 HANGING,35594,95.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOODEN HEART CHRISTMAS SCANDISPOT,22577,30.599999999999998,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOODEN STAR CHRISTMAS SCANDISPOT,22578,61.199999999999996,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOODEN TREE CHRISTMAS SCANDISPOT,22579,81.6,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOODENDECORATIONS,23263,58.75,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WOODLAND CREATURES WRAP,21496,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WRAP SWEETS LIGHT PINK SMALL BOWL,84596I,80.62,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"WRAPPING PAPER, XMAS VILLAGE",22959,10.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+WRONGCODE,22719,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"Wet, rusty-thrown away",71477,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+YELLOW BIRDS FELT DES FOODCOVER,37112,37.5,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+YELLOW FELT HANGING HEART W FLOWER,35916A,79.99,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+YELLOW PINK FLOWER DESIGN BIG BOWL,37488A,16.82,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ZINC HANGING HEART T-LITE HLDR,85123b,6.04,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ZINC HEART HANGER WITH HOOKS,21053,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ZINC HEART LATTICE CHARGER SMALL,20848,91.45000000000002,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+ZINC T-LIGHT HOLDER STARS LARGE,23145,11.399999999999999,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+Zebra invcing error,10120,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+adjust,51020B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+amazon sales,22734,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+bad quality,21100,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+barcode problem,85025C,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+broken glass,21735,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"broken, uneven bottom",22423,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+cant find,35955,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+code mix up 72597,72586,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+coding mix up,84795A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+cracked,82494L,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damaged stock,40016,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damaged/dirty,85060,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damaged?,22058,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damages etc,84078A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damages/credits from ASOS.,79164,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damages/display,20893,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damages/dotcom?,37370,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damages/showroom etc,22655,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+damges,21323,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+debenhams,21770,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+did a credit and did not tick ret,47556B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+dirty,21858,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+"dirty, torn, thrown away.",45008C,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+display stands,21764,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+donated to the Food Chain charity.,22607,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+dotcom email,22902,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+dotcom sold sets,85175,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+entry error,46000R,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+eurobargain invc/credit,84924D,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+faulty,22423,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+for show,85070,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+found again,22037,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+incorrect credit,84925D,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+incorrectly credited C550456 see 47,47566B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+incorrectly made-thrown away.,84406B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+invcd as 84879?,21133,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+invoice 506647,84016,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+label mix up,85096,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+throw away,72140F,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+tk maxx mix up with pink,37479B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+used for show display,21760,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wedding co returns?,15056N,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wet & rotting,84858B,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wet and rotting,84858A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wet cartons,72232,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wet ctn,84508A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wet damages,35015,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wet/smashed/unsellable,79000,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wonky bottom/broken,22423,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrong barcode,21689,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrong barcode (22467),22719,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrong code?,22467,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrong ctn size,85017A,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrong invc,17129C,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrongly sold (22719) barcode,22467,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.
+wrongly sold sets,85175,0.0,dropped_before_clustering,This product was excluded before clustering because its training-period sales_amount was below the cutoff of 100.

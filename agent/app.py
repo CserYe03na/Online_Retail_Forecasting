@@ -17,10 +17,17 @@ if str(PROJECT_ROOT_PATH) not in sys.path:
 
 from agent import PROJECT_ROOT
 from agent.build_assets import build_assets
-from agent.config import CHAT_HISTORY_PATH
+from agent.config import CHAT_HISTORY_PATH, OPENAI_API_KEY, OPENAI_SUMMARY_MODEL
 from agent.prompts import FORECAST_AGENT_SYSTEM_PROMPT, build_summary_payload
 from agent.query_parser import parse_request_options
-from agent.tools import get_product_forecast, get_product_history, load_manifest, resolve_product
+from agent.tools import (
+    get_product_forecast,
+    get_product_history,
+    load_manifest,
+    resolve_product,
+    resolve_product_strict,
+)
+from agent.unavailable_products import resolve_unavailable_product
 
 
 st.set_page_config(page_title="Product Forecast Query Agent", layout="wide")
@@ -202,8 +209,56 @@ def main() -> None:
 def _handle_query(user_query: str) -> None:
     request_options = parse_request_options(user_query)
     request_options["mode"] = st.session_state.get("forecast_mode", "evaluation")
+    lookup_query = str(request_options.get("product_query") or user_query).strip()
+
     try:
-        resolution = resolve_product(user_query)
+        strict_resolution = resolve_product_strict(lookup_query)
+    except Exception as exc:
+        st.session_state.messages.append({"role": "assistant", "content": str(exc)})
+        return
+
+    if strict_resolution["status"] == "resolved":
+        try:
+            response = _build_forecast_response(
+                product_key=strict_resolution["match"]["product_key"],
+                user_query=user_query,
+                request_options=request_options,
+            )
+        except FileNotFoundError as exc:
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": _missing_artifact_message(request_options=request_options, error=exc),
+                }
+            )
+            return
+        st.session_state.messages.append(response)
+        _append_query_history(response)
+        st.session_state.pending_resolution = None
+        return
+
+    if strict_resolution["status"] == "ambiguous":
+        candidates = strict_resolution["matches"][:5]
+        content = "I found multiple matching products. Choose one below to load the forecast."
+        st.session_state.messages.append({"role": "assistant", "content": content})
+        st.session_state.pending_resolution = {
+            "query": user_query,
+            "candidates": candidates,
+        }
+        return
+
+    unavailable = resolve_unavailable_product(lookup_query)
+    if unavailable is not None:
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": _unavailable_product_message(unavailable["match"]),
+            }
+        )
+        st.session_state.pending_resolution = None
+        return
+    try:
+        resolution = resolve_product(lookup_query)
     except Exception as exc:
         st.session_state.messages.append({"role": "assistant", "content": str(exc)})
         return
@@ -350,16 +405,14 @@ def _generate_summary(
     granularity: str,
 ) -> str:
     try:
-        import os
         from openai import OpenAI
     except Exception:
         return _fallback_summary(metadata=metadata, forecast_df=display_df, granularity=granularity)
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+    if not OPENAI_API_KEY:
         return _fallback_summary(metadata=metadata, forecast_df=display_df, granularity=granularity)
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=OPENAI_API_KEY)
     payload = build_summary_payload(
         user_query=user_query,
         metadata=metadata,
@@ -368,7 +421,7 @@ def _generate_summary(
 
     try:
         response = client.responses.create(
-            model="gpt-4o-mini",
+            model=OPENAI_SUMMARY_MODEL,
             input=[
                 {"role": "system", "content": FORECAST_AGENT_SYSTEM_PROMPT},
                 {"role": "user", "content": payload},
@@ -570,6 +623,27 @@ def _missing_artifact_message(request_options: Dict[str, object], error: FileNot
             f"Details: {error}"
         )
     return f"Validated forecast artifacts are missing. Rebuild the evaluation assets first.\n\nDetails: {error}"
+
+
+def _unavailable_product_message(match: Dict[str, Any]) -> str:
+    product_name = _display_value(match.get("product_family_name"))
+    product_id = _display_value(match.get("product_id"))
+    reason_type = str(match.get("reason_type", "unavailable"))
+    reason_message = str(match.get("reason_message", "This product is not available for forecasting."))
+
+    if reason_type == "dropped_before_clustering":
+        detail = "It never entered the clustering-and-modeling pipeline, so the agent has no cluster-specific forecast model for it."
+    elif reason_type == "cluster_4_excluded":
+        detail = "Cluster 4 was treated as ultra-sparse and event-driven, so it was excluded from automated forecasting in the downstream modeling stage."
+    else:
+        detail = "This product is outside the set of products supported by the forecasting pipeline."
+
+    return (
+        f"**Product**: {product_name}  \n"
+        f"**Product ID**: {product_id}  \n"
+        f"**Forecast availability**: Not available  \n\n"
+        f"{reason_message} {detail}"
+    )
 
 
 def _render_chat_message(message: Dict[str, Any], message_index: int) -> None:

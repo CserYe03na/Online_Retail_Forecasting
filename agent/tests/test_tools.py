@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 import agent.tools as agent_tools
-from agent.tools import get_product_forecast, resolve_product
+from agent.tools import get_product_forecast, resolve_product, resolve_product_strict
 
 
 def _write_registry_and_artifact(tmp_path):
@@ -64,6 +64,17 @@ def test_resolve_product_supports_exact_id_and_ambiguous_and_not_found(tmp_path)
 
     not_found = resolve_product("banana lantern", registry_path=registry_path)
     assert not_found["status"] == "not_found"
+
+
+def test_resolve_product_strict_disables_fuzzy_resolution(tmp_path) -> None:
+    registry_path = _write_registry_and_artifact(tmp_path)
+
+    strict = resolve_product_strict("banana lantern", registry_path=registry_path)
+    assert strict["status"] == "not_found"
+    assert strict["nearest_matches"] == []
+
+    fuzzy = resolve_product("cherry", registry_path=registry_path)
+    assert fuzzy["status"] == "ambiguous"
 
 
 def test_get_product_forecast_returns_sorted_horizon(tmp_path) -> None:

@@ -1,17 +1,26 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from dotenv import load_dotenv
+
 from agent import AGENT_ROOT, PROJECT_ROOT
 
+load_dotenv(PROJECT_ROOT / ".env")
 
 ARTIFACTS_DIR = AGENT_ROOT / "artifacts"
 RAW_ARTIFACTS_DIR = ARTIFACTS_DIR / "raw"
 REGISTRY_PATH = ARTIFACTS_DIR / "product_registry.csv"
 MANIFEST_PATH = ARTIFACTS_DIR / "manifest.json"
 CHAT_HISTORY_PATH = ARTIFACTS_DIR / "chat_history.json"
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+ENABLE_OPENAI_QUERY_PARSER = os.getenv("ENABLE_OPENAI_QUERY_PARSER", "0").strip().lower() in {"1", "true", "yes", "on"}
+OPENAI_SUMMARY_MODEL = os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+OPENAI_QUERY_PARSER_MODEL = os.getenv("OPENAI_QUERY_PARSER_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
 
 DEFAULT_TRAIN_PATH = PROJECT_ROOT / "data" / "forecasting" / "train_daily.parquet"
 DEFAULT_TEST_PATH = PROJECT_ROOT / "data" / "forecasting" / "test_daily.parquet"
