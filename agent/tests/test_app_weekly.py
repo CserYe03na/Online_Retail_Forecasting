@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from agent.app import _prepare_chart_frame, _prepare_display_frame
+from agent.app import _prepare_chart_frame, _prepare_display_frame, _unavailable_product_message
 
 
 def test_prepare_display_frame_weekly_returns_period_start() -> None:
@@ -67,3 +67,18 @@ def test_prepare_chart_frame_future_weekly_combines_history_and_forecast() -> No
     assert chart_df["segment"].tolist() == ["history", "forecast", "forecast"]
     assert chart_df["actual_value"].tolist()[0] == 5.0
     assert chart_df["forecast_value"].tolist()[1:] == [5.0, 6.0]
+
+
+def test_unavailable_product_message_uses_manual_forecasting_wording() -> None:
+    message = _unavailable_product_message(
+        {
+            "product_family_name": "BEADCHAIN",
+            "product_id": "35822B",
+            "reason_type": "cluster_4_excluded",
+            "reason_message": "This product belongs to cluster 4, an ultra-sparse event-driven group that was excluded from automated forecasting.",
+        }
+    )
+
+    assert "Manual forecasting required" in message
+    assert "requires manual forecasting" in message
+    assert "Not available" not in message

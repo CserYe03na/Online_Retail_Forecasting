@@ -629,20 +629,32 @@ def _unavailable_product_message(match: Dict[str, Any]) -> str:
     product_name = _display_value(match.get("product_family_name"))
     product_id = _display_value(match.get("product_id"))
     reason_type = str(match.get("reason_type", "unavailable"))
-    reason_message = str(match.get("reason_message", "This product is not available for forecasting."))
+    reason_message = str(match.get("reason_message", "")).strip()
 
     if reason_type == "dropped_before_clustering":
-        detail = "It never entered the clustering-and-modeling pipeline, so the agent has no cluster-specific forecast model for it."
+        detail = (
+            "This product requires manual forecasting because it never entered the clustering-and-modeling "
+            "pipeline, so the agent has no cluster-specific model for it."
+        )
     elif reason_type == "cluster_4_excluded":
-        detail = "Cluster 4 was treated as ultra-sparse and event-driven, so it was excluded from automated forecasting in the downstream modeling stage."
+        detail = (
+            "This product requires manual forecasting because Cluster 4 was treated as ultra-sparse and "
+            "event-driven, so it was excluded from the downstream automated forecasting stage."
+        )
     else:
-        detail = "This product is outside the set of products supported by the forecasting pipeline."
+        detail = "This product requires manual forecasting because it is outside the set of products supported by the forecasting pipeline."
+
+    if reason_message:
+        reason_message = reason_message.rstrip(".")
+        extra_line = f"{reason_message}. {detail}"
+    else:
+        extra_line = detail
 
     return (
         f"**Product**: {product_name}  \n"
         f"**Product ID**: {product_id}  \n"
-        f"**Forecast availability**: Not available  \n\n"
-        f"{reason_message} {detail}"
+        f"**Forecast handling**: Manual forecasting required  \n\n"
+        f"{extra_line}"
     )
 
 
