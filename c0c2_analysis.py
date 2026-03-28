@@ -155,10 +155,6 @@ def zero_day_fpr(
     fp = np.sum((y_pred_sale == 1) & zero_mask)
     return float(fp / np.sum(zero_mask))
 
-
-# --------------------------------------------------
-# 1) 整体 pointwise 评估：把所有 sku-day 拉平后一起算
-# --------------------------------------------------
 def compute_overall_metric_bundle(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -203,10 +199,6 @@ def compute_overall_metric_bundle(
     }
     return metric_bundle
 
-
-# --------------------------------------------------
-# 2) 单个 sku 的 metric
-# --------------------------------------------------
 def compute_sku_metric_bundle(
     sku_actual: np.ndarray,
     sku_pred: np.ndarray,
@@ -220,11 +212,6 @@ def compute_sku_metric_bundle(
         metric_name=metric_name
     )
 
-
-# --------------------------------------------------
-# 3) 宽表（date x sku）的 sku-level 平均指标
-#    每个 sku 先算一遍，再 across sku 取平均
-# --------------------------------------------------
 def compute_sku_level_metrics(
     sku_actual_df: pd.DataFrame,
     sku_pred_df: pd.DataFrame,
@@ -272,11 +259,6 @@ def compute_sku_level_metrics(
 
     return sku_metrics_df, avg_metrics
 
-
-# --------------------------------------------------
-# 4) 宽表（date x sku）的整体 metrics
-#    所有 sku-day 一起 flatten 后算
-# --------------------------------------------------
 def compute_panel_overall_metrics(
     sku_actual_df: pd.DataFrame,
     sku_pred_df: pd.DataFrame,
@@ -471,10 +453,6 @@ def evaluate_prediction_frame(
         "error_quantiles": error_quantiles,
     }
 
-
-# --------------------------------------------------
-# 5) 一次性输出你最常用的结果
-# --------------------------------------------------
 def evaluate_forecasts(
     sku_actual_df: pd.DataFrame,
     sku_pred_df: pd.DataFrame,

@@ -429,10 +429,8 @@ def _build_training_sample_weight(
 
     y = pd.to_numeric(train_feat["y"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
 
-    # 非零样本更重要
     nonzero_w = np.where(y > 0, 1.5, 1.0)
 
-    # 大销量样本更重要，避免模型一直学低值
     pos = y[y > 0]
     if len(pos) > 0:
         ref = max(np.percentile(pos, 90), 1.0)
