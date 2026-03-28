@@ -16,6 +16,15 @@ The project is organized around five main stages:
 4. `Modeling`: train and compare cluster-specific forecasting models for clusters `C0`, `C1`, `C2`, and `C3`
 5. `Agent`: forecast and expose a Streamlit interface for product lookup
 
+## Dataset
+
+This project uses the **Online Retail II** transaction dataset from the UCI Machine Learning Repository.
+
+- Source: `https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip`
+- Raw format: Excel workbook with two sheets (`Year 2009-2010`, `Year 2010-2011`)
+- Core fields used through the pipeline include invoice date, stock code, description, quantity/amount signals, and customer/country metadata
+- Modeling unit in this repo: product-family daily demand time series derived from cleaned transactional records
+
 ## Architecture
 
 ```text
@@ -142,10 +151,10 @@ PYTHONNOUSERSITE=1 python -s -m nbconvert --to notebook --execute --inplace --Ex
 
 - Output: ['data/forecasting/c1_prediction.parquet']
 
-- [`c1_forecasting_new.py`]
+- [`c1_forecasting.py`]
   - Stage: modeling
-  - Purpose: cluster `C1` forecasting pipeline
-  - Output: prediction tables, metric tables, and analysis-ready artifacts
+  - Purpose: cluster `C1` forecasting pipeline (naive7 baseline vs leak-safe ZINB)
+  - Output: `data/forecasting/c1_prediction.parquet` and analysis-ready metric artifacts
 
 #### Cluster C2
 
@@ -165,10 +174,10 @@ PYTHONNOUSERSITE=1 python -s -m nbconvert --to notebook --execute --inplace --Ex
 
 - Output: ['data/forecasting/c3_prediction.parquet']
 
-- [`c3_forecasting_new.py`]
+- [`c3_forecasting.py`]
   - Stage: modeling
-  - Purpose: cluster `C3` two-stage HistGradientBoosting workflow
-  - Output: metrics, period-level analyses, and forecast artifacts
+  - Purpose: cluster `C3` forecasting pipeline (naive7 baseline vs leak-safe two-stage HGB)
+  - Output: `data/forecasting/c3_prediction.parquet` and period-level metric artifacts
 
 #### Modeling notebooks
 
@@ -179,8 +188,12 @@ PYTHONNOUSERSITE=1 python -s -m nbconvert --to notebook --execute --inplace --Ex
     - period-level evaluation tables
     - boxplots and comparison figures in [`images/c0_result/`] and [`images/c2_result/`]
 
+- [`c1c3_forecasting.ipynb`]
+  - Purpose: main comparative-study notebook for `C1` and `C3`; runs final pairwise model comparisons and exports production prediction files used by downstream analysis/agent tooling
+  - Output: `data/forecasting/c1_prediction.parquet`, `data/forecasting/c3_prediction.parquet`, plus comparison metrics/plots
+
 - [`c1c3_model_comparison_new.ipynb`]
-  - Purpose: comparison notebook for `C1` and `C3`
+  - Purpose: extended/alternate comparative-study notebook for `C1` and `C3` using the newer experimental pipelines
   - Output: evaluation plots in [`images/c1_results/`] and [`images/c3_results/`]
 
 #### Helper files
