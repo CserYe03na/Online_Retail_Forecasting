@@ -3,19 +3,26 @@
 This project builds cluster-based forecasting models for online retail products and provides a Streamlit agent for product-level forecast lookup.
 
 ## Environment Setup
-
-Create and activate the conda environment from `environment.yml`:
+Create and activate the conda environment:
 
 ```bash
 cd Online_Retail_Forecasting
-conda env create -f environment.yml
+conda env create -f environment.cross-platform.yml
 conda activate forecasting-retail
+```
+
+Create and activate the mamba environment:
+
+```bash
+cd Online_Retail_Forecasting
+mamba env create -f environment.cross-platform.yml
+mamba activate forecasting-retail
 ```
 
 If the environment already exists:
 
 ```bash
-conda env update -f environment.yml --prune
+conda env update -f environment.cross-platform.yml --prune
 conda activate forecasting-retail
 ```
 
