@@ -1,0 +1,45 @@
+name: forecasting-retail
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - pip
+
+  # Core data stack
+  - numpy=1.26
+  - pandas=2.2
+  - scipy
+  - pyarrow
+  - openpyxl
+  - pyyaml
+  - requests
+  - tqdm
+
+  # Modeling
+  - scikit-learn
+  - statsmodels
+  - lightgbm
+  - joblib
+
+  # Clustering / segmentation notebooks
+  - hdbscan
+  - umap-learn
+  - tslearn
+
+  # Visualization
+  - matplotlib
+  - seaborn
+  - plotly
+
+  # Notebook workflow
+  - jupyterlab
+  - ipykernel
+
+  # Agent app
+  - streamlit
+  - openai
+  - python-dotenv
+
+  # Helpful for local validation
+  - pytest
