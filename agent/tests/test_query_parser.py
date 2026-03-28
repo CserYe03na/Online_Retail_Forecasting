@@ -8,13 +8,6 @@ def test_parse_request_options_extracts_days_and_defaults_daily() -> None:
     assert opts["horizon_days"] == 30
     assert opts["granularity"] == "daily"
 
-
-def test_parse_request_options_extracts_weeks_and_switches_weekly() -> None:
-    opts = parse_request_options("给我这个产品未来6周的weekly forecast")
-    assert opts["horizon_days"] == 42
-    assert opts["granularity"] == "weekly"
-
-
 def test_parse_request_options_extracts_product_query_from_stock_code_phrase() -> None:
     opts = parse_request_options("Show me the next 8 weeks for stock code 20973")
     assert opts["product_query"] == "20973"

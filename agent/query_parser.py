@@ -18,10 +18,10 @@ LEADING_QUERY_PATTERNS = [
 ]
 
 TRAILING_TIME_PATTERNS = [
-    r"\bfor\s+the\s+next\s+\d+\s*(?:days?|weeks?|months?|d|w|天|周)\b",
-    r"\bfor\s+\d+\s*(?:days?|weeks?|months?|d|w|天|周)\b",
-    r"\bnext\s+\d+\s*(?:days?|weeks?|months?|d|w|天|周)\b",
-    r"\bfuture\s+\d+\s*(?:days?|weeks?|months?|d|w|天|周)\b",
+    r"\bfor\s+the\s+next\s+\d+\s*(?:days?|weeks?|months?|d|w)\b",
+    r"\bfor\s+\d+\s*(?:days?|weeks?|months?|d|w)\b",
+    r"\bnext\s+\d+\s*(?:days?|weeks?|months?|d|w)\b",
+    r"\bfuture\s+\d+\s*(?:days?|weeks?|months?|d|w)\b",
 ]
 
 NOISE_TOKENS = [
@@ -45,9 +45,9 @@ def parse_request_options(query: str) -> Dict[str, object]:
     horizon_days = DEFAULT_HORIZON_DAYS
     granularity = "daily"
 
-    day_match = re.search(r"(\d+)\s*(?:days?|day|d|天)", text_lower)
-    week_match = re.search(r"(\d+)\s*(?:weeks?|week|w|周)", text_lower)
-    month_match = re.search(r"(\d+)\s*(?:months?|month|m|个月)", text_lower)
+    day_match = re.search(r"(\d+)\s*(?:days?|day|d)", text_lower)
+    week_match = re.search(r"(\d+)\s*(?:weeks?|week|w)", text_lower)
+    month_match = re.search(r"(\d+)\s*(?:months?|month|m)", text_lower)
 
     if day_match:
         horizon_days = int(day_match.group(1))
@@ -57,9 +57,9 @@ def parse_request_options(query: str) -> Dict[str, object]:
     elif month_match:
         horizon_days = int(month_match.group(1)) * 30
 
-    if any(token in text_lower for token in ["weekly", "per week", "按周", "每周", "周度", "周汇总"]):
+    if any(token in text_lower for token in ["weekly", "per week"]):
         granularity = "weekly"
-    elif any(token in text_lower for token in ["daily", "per day", "按天", "每天", "日度"]):
+    elif any(token in text_lower for token in ["daily", "per day"]):
         granularity = "daily"
 
     product_query = _extract_product_query(text)
